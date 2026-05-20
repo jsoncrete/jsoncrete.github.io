@@ -1,195 +1,649 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PenguFi Pass</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: radial-gradient(circle at top, #e0f7ff, #b2e3f5);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      position: relative;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>NFT JSON Generator - Create NFTs with Attributes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
 
-    .nft-card {
-      background: linear-gradient(145deg, #ffffff, #e6f7ff);
-      border: 2px solid #8edaff;
-      border-radius: 25px;
-      box-shadow: 0 10px 30px rgba(0, 153, 255, 0.3);
-      overflow: hidden;
-      width: 360px;
-      max-width: 90%;
-      text-align: center;
-      transition: transform 0.3s ease;
-    }
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+        }
 
-    .nft-card:hover {
-      transform: scale(1.02);
-      box-shadow: 0 15px 40px rgba(0, 153, 255, 0.5);
-    }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
 
-    .nft-image img {
-      width: 100%;
-      border-bottom: 2px solid #8edaff;
-      border-radius: 25px 25px 0 0;
-    }
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
 
-    .nft-details {
-      padding: 20px;
-    }
+        .header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #a855f7, #ec4899, #fbbf24);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
 
-    .nft-details h2 {
-      margin: 0;
-      font-size: 30px;
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 5px rgba(0, 153, 255, 0.5);
-    }
+        .header p {
+            color: #c4b5fd;
+            margin-top: 0.75rem;
+            font-size: 1.1rem;
+        }
 
-    .tagline {
-      margin: 10px 0;
-      font-weight: bold;
-      font-size: 15px;
-      color: #00aaff;
-      text-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
-    }
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
 
-    .description {
-      font-size: 14px;
-      color: #333;
-      margin-bottom: 20px;
-      text-shadow: 0 0 4px rgba(173, 216, 230, 0.4);
-      line-height: 1.5;
-    }
+        /* Cards */
+        .card {
+            background: rgba(30, 27, 58, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.5);
+            padding: 1.8rem;
+            transition: transform 0.2s;
+        }
 
-    .info {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: #005577;
-      text-shadow: 0 0 3px rgba(0, 153, 255, 0.2);
-    }
+        .card:hover {
+            transform: translateY(-4px);
+        }
 
-    .info strong {
-      color: #007acc;
-      text-shadow: 0 0 3px rgba(0, 153, 255, 0.3);
-    }
+        .card h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #f0e7ff;
+            border-left: 5px solid #c084fc;
+            padding-left: 1rem;
+        }
 
-    .mint-btn {
-      padding: 12px 25px;
-      background: linear-gradient(to right, #00c6ff, #0072ff);
-      border: none;
-      color: white;
-      border-radius: 30px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: box-shadow 0.3s ease, transform 0.2s;
-      box-shadow: 0 0 10px rgba(0, 153, 255, 0.5);
-      text-decoration: none;
-      display: inline-block;
-    }
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
 
-    .mint-btn:hover {
-      box-shadow: 0 0 20px rgba(0, 153, 255, 0.8);
-      transform: scale(1.05);
-    }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #e9d5ff;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-    .notify-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      padding: 12px 25px;
-      background: linear-gradient(to right, #ff6b6b, #ff2e63);
-      border: none;
-      color: white;
-      border-radius: 30px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      box-shadow: 0 0 10px rgba(255, 46, 99, 0.5);
-      transition: box-shadow 0.3s ease, transform 0.2s;
-      animation: pulseGlow 1.5s ease-in-out infinite;
-    }
+        input, textarea {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: #1e1b3e;
+            border: 2px solid #4c1d95;
+            border-radius: 1rem;
+            font-size: 0.95rem;
+            color: #f3e8ff;
+            transition: all 0.2s;
+            outline: none;
+        }
 
-    .notify-btn:hover {
-      box-shadow: 0 0 20px rgba(255, 46, 99, 0.8);
-      transform: scale(1.05);
-    }
+        input:focus, textarea:focus {
+            border-color: #c084fc;
+            box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
+        }
 
-    @keyframes pulseGlow {
-      0% { box-shadow: 0 0 10px rgba(255, 46, 99, 0.5); }
-      50% { box-shadow: 0 0 20px rgba(255, 46, 99, 0.8); }
-      100% { box-shadow: 0 0 10px rgba(255, 46, 99, 0.5); }
-    }
-  </style>
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Attributes Section */
+        .attributes-section {
+            background: #1a1736;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .attribute-item {
+            background: #2d2a55;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .attribute-item input {
+            flex: 1;
+            min-width: 120px;
+            background: #1e1b3e;
+        }
+
+        .remove-attr-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .remove-attr-btn:hover {
+            background: #b91c1c;
+        }
+
+        .add-attr-btn {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: 0.2s;
+        }
+
+        .add-attr-btn:hover {
+            transform: scale(1.02);
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 3rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: #1e1b3e;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #c084fc;
+            color: #c084fc;
+        }
+
+        /* Preview */
+        .preview-area {
+            background: #0f0c29;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border: 1px solid #4c1d95;
+        }
+
+        .json-preview {
+            background: #05030f;
+            color: #a5f3c3;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 280px;
+        }
+
+        /* Batch List */
+        .batch-list {
+            max-height: 280px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            background: #0f0c29;
+            border-radius: 1rem;
+            padding: 0.5rem;
+        }
+
+        .file-item {
+            background: #2d2a55;
+            margin: 0.5rem 0;
+            padding: 0.6rem 1rem;
+            border-radius: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        .badge {
+            background: #8b5cf6;
+            color: white;
+            padding: 0.2rem 0.7rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 1rem;
+            }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            color: #a78bfa;
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
 <body>
-  <a href="https://docs.google.com/forms/d/e/1FAIpQLSdYsHbd3ab3RoT3Bp4rf4FvMNCVzbX4w96UEjACP4r7WkUyYg/viewform?usp=header" class="notify-btn">Claim WL</a>
-  <div class="nft-card">
-    <div class="nft-image">
-      <img src="https://iili.io/34LzaPp.jpg" alt="PenguFi Pass NFT">
+<div class="container">
+    <div class="header">
+        <h1>🖼️ NFT JSON Studio</h1>
+        <p>Create NFT metadata | Add Name, Description, Image CID/Link & Multiple Attributes (Traits)</p>
     </div>
-    <div class="nft-details">
-      <h2>PenguFi Pass</h2>
-      <p class="tagline">❄️ The chillest pass in DeFi 🐧</p>
-      <p class="description">
-        Only 699 will ever exist. Holders gain whitelist access, early staking power, and frosty rewards. Step into the iceberg before it melts!
-      </p>
-      <div class="info">
-        <span>Supply: <strong>699</strong></span>
-        <span>Status: <strong>Whitelist Sale</strong></span>
-      </div>
-      <a href="https://www.tradeport.xyz/sui/collection/0xf7048255637630136351f3becd6c7aa8a2041f856e4ea03e07addc06e6ae4d40?tab=mint&bottomTab=trades&mintTokenId=5d26e54c-7ab6-4369-bb70-53b51135de83" class="mint-btn">Mint Now</a>
+
+    <div class="main-grid">
+        <!-- LEFT PANEL: NFT Data Form -->
+        <div class="card">
+            <h2>✏️ NFT Details</h2>
+            <div class="form-group">
+                <label>🏷️ NFT Name</label>
+                <input type="text" id="nftName" placeholder="e.g., Cosmic Ape #442" value="Galactic Phoenix">
+            </div>
+            <div class="form-group">
+                <label>📝 Description</label>
+                <textarea id="nftDescription" placeholder="Describe your NFT...">A rare cosmic creature from the Andromeda galaxy, radiating mystical energy.</textarea>
+            </div>
+            <div class="form-group">
+                <label>🖼️ Image CID / URL</label>
+                <input type="text" id="imageUrl" placeholder="IPFS CID: Qm... or https://..." value="QmXk8kZ1nRcqN9rQV4z8bBzfLwX5G6f3jYpF6hRk9aGtL">
+            </div>
+
+            <!-- Attributes Section -->
+            <div class="attributes-section">
+                <label style="margin-bottom: 0.8rem;">✨ Attributes (Traits) — Add multiple</label>
+                <div id="attributesContainer">
+                    <!-- Dynamic attribute rows will appear here -->
+                </div>
+                <button type="button" class="add-attr-btn" id="addAttributeBtn">+ Add New Attribute</button>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="singleDownloadBtn">⭐ Download Single NFT JSON</button>
+                <button class="btn btn-outline" id="resetFormBtn">⟳ Reset Form</button>
+            </div>
+
+            <div class="preview-area">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <strong>🔍 Live JSON Preview</strong>
+                    <span class="badge">Current NFT</span>
+                </div>
+                <div class="json-preview" id="jsonPreview">Loading preview...</div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Batch Generate 500 Files -->
+        <div class="card">
+            <h2>⚙️ Batch Generator (500 NFTs)</h2>
+            <p style="color:#c4b5fd; margin-bottom: 1rem;">Generate up to 500 unique JSON files. Each file will have incremental variations in Name, Image CID, Description & Attributes.</p>
+            
+            <div class="form-group">
+                <label>🔢 Number of NFTs to Generate (max 500)</label>
+                <input type="number" id="batchCount" min="1" max="500" value="500" step="1">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-success" id="generateBatchBtn">📦 Generate Batch (ZIP)</button>
+                <button class="btn btn-warning" id="clearBatchListBtn">🗑️ Clear List</button>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <strong>📋 Generated Files List</strong>
+                <div id="batchFileList" class="batch-list">
+                    <div style="color:#a78bfa; text-align:center; padding:1rem;">No files generated yet</div>
+                </div>
+                <button id="downloadAllZipBtn" class="btn btn-primary" style="background: #ec4899; width:100%; margin-top: 1rem;">📥 Download All as ZIP</button>
+            </div>
+        </div>
     </div>
-  </div>
+    <footer>
+        🚀 Full NFT metadata schema: name, description, image, attributes (trait_type & value). Each JSON ready for NFT marketplaces.
+    </footer>
+</div>
+
+<!-- JS Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<script>
+    (function() {
+        // DOM Elements
+        const nftNameInput = document.getElementById('nftName');
+        const nftDescInput = document.getElementById('nftDescription');
+        const imageUrlInput = document.getElementById('imageUrl');
+        const attributesContainer = document.getElementById('attributesContainer');
+        const addAttributeBtn = document.getElementById('addAttributeBtn');
+        const jsonPreviewDiv = document.getElementById('jsonPreview');
+        const singleDownloadBtn = document.getElementById('singleDownloadBtn');
+        const resetFormBtn = document.getElementById('resetFormBtn');
+        const generateBatchBtn = document.getElementById('generateBatchBtn');
+        const clearBatchListBtn = document.getElementById('clearBatchListBtn');
+        const downloadAllZipBtn = document.getElementById('downloadAllZipBtn');
+        const batchFileListDiv = document.getElementById('batchFileList');
+        const batchCountInput = document.getElementById('batchCount');
+
+        // Store generated files for batch
+        let generatedFiles = []; // each: { filename, jsonObject }
+
+        // Attribute Management
+        let attributeCounter = 0;
+
+        function createAttributeRow(traitType = '', value = '') {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'attribute-item';
+            rowDiv.setAttribute('data-attr-id', `attr_${attributeCounter++}`);
+            
+            const typeInput = document.createElement('input');
+            typeInput.type = 'text';
+            typeInput.placeholder = 'Trait Type (e.g., "Rarity", "Color")';
+            typeInput.value = traitType;
+            typeInput.classList.add('attr-type');
+            
+            const valueInput = document.createElement('input');
+            valueInput.type = 'text';
+            valueInput.placeholder = 'Value (e.g., "Legendary", "Gold")';
+            valueInput.value = value;
+            valueInput.classList.add('attr-value');
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = '✖ Remove';
+            removeBtn.className = 'remove-attr-btn';
+            removeBtn.onclick = () => rowDiv.remove();
+            
+            rowDiv.appendChild(typeInput);
+            rowDiv.appendChild(valueInput);
+            rowDiv.appendChild(removeBtn);
+            return rowDiv;
+        }
+
+        // Load default 2 attributes example
+        function initDefaultAttributes() {
+            attributesContainer.innerHTML = '';
+            attributeCounter = 0;
+            const attr1 = createAttributeRow('Rarity', 'Legendary');
+            const attr2 = createAttributeRow('Element', 'Fire');
+            attributesContainer.appendChild(attr1);
+            attributesContainer.appendChild(attr2);
+        }
+
+        addAttributeBtn.addEventListener('click', () => {
+            const newAttr = createAttributeRow('', '');
+            attributesContainer.appendChild(newAttr);
+        });
+
+        // Get current attributes array from UI
+        function getCurrentAttributes() {
+            const attributes = [];
+            const rows = attributesContainer.querySelectorAll('.attribute-item');
+            rows.forEach(row => {
+                const typeInput = row.querySelector('.attr-type');
+                const valueInput = row.querySelector('.attr-value');
+                const traitType = typeInput ? typeInput.value.trim() : '';
+                const traitValue = valueInput ? valueInput.value.trim() : '';
+                if(traitType !== '' || traitValue !== '') {
+                    attributes.push({
+                        trait_type: traitType || 'unknown',
+                        value: traitValue || 'unknown'
+                    });
+                }
+            });
+            return attributes;
+        }
+
+        // Build current NFT JSON object
+        function getCurrentNFTJSON() {
+            const name = nftNameInput.value.trim() || "Unnamed NFT";
+            const description = nftDescInput.value.trim() || "No description";
+            const image = imageUrlInput.value.trim() || "https://example.com/default.png";
+            const attributes = getCurrentAttributes();
+            
+            return {
+                name: name,
+                description: description,
+                image: image,
+                attributes: attributes
+            };
+        }
+
+        // Update Preview
+        function updatePreview() {
+            const nftData = getCurrentNFTJSON();
+            jsonPreviewDiv.textContent = JSON.stringify(nftData, null, 2);
+        }
+
+        // Event listeners for live preview
+        nftNameInput.addEventListener('input', updatePreview);
+        nftDescInput.addEventListener('input', updatePreview);
+        imageUrlInput.addEventListener('input', updatePreview);
+        
+        // Delegate for attribute changes
+        attributesContainer.addEventListener('input', updatePreview);
+        attributesContainer.addEventListener('change', updatePreview);
+
+        // Single JSON Download
+        function downloadSingleJSON() {
+            const nftData = getCurrentNFTJSON();
+            const safeName = nftData.name.replace(/[^a-z0-9]/gi, '_').substring(0, 50);
+            const filename = `${safeName}_nft.json`;
+            const jsonStr = JSON.stringify(nftData, null, 2);
+            const blob = new Blob([jsonStr], {type: "application/json"});
+            saveAs(blob, filename);
+        }
+
+        singleDownloadBtn.addEventListener('click', downloadSingleJSON);
+
+        // Reset Form to default
+        function resetForm() {
+            nftNameInput.value = "Galactic Phoenix";
+            nftDescInput.value = "A rare cosmic creature from the Andromeda galaxy, radiating mystical energy.";
+            imageUrlInput.value = "QmXk8kZ1nRcqN9rQV4z8bBzfLwX5G6f3jYpF6hRk9aGtL";
+            initDefaultAttributes();
+            updatePreview();
+        }
+        resetFormBtn.addEventListener('click', resetForm);
+
+        // Batch Generation: creates 'count' unique NFT objects
+        function generateBatchNFTs(count) {
+            const baseName = nftNameInput.value.trim() || "NFT";
+            const baseDesc = nftDescInput.value.trim() || "Awesome NFT";
+            const baseImage = imageUrlInput.value.trim() || "QmDefaultCID";
+            const baseAttributes = getCurrentAttributes(); // template attributes
+            
+            const batch = [];
+            
+            for(let i = 1; i <= count; i++) {
+                // Create variations for each NFT
+                const uniqueName = `${baseName} #${i}`;
+                const uniqueDesc = `${baseDesc} [Edition ${i}] — Unique metadata for NFT ${i}`;
+                const uniqueImage = `${baseImage}_${i}`;
+                
+                // Create dynamic attributes: add edition trait and optionally shift values
+                const dynamicAttrs = [];
+                // copy base attributes but modify values slightly for variation
+                for(let attr of baseAttributes) {
+                    let newValue = attr.value;
+                    if(attr.trait_type.toLowerCase().includes('edition') === false) {
+                        if(i % 3 === 0) newValue = attr.value + `+${i}`;
+                        else if(i % 5 === 0) newValue = attr.value + `⭐`;
+                        else newValue = attr.value;
+                    }
+                    dynamicAttrs.push({
+                        trait_type: attr.trait_type,
+                        value: newValue
+                    });
+                }
+                // Add an edition trait for clear distinction
+                dynamicAttrs.push({
+                    trait_type: "Edition",
+                    value: `#${i}`
+                });
+                
+                const nftObject = {
+                    name: uniqueName,
+                    description: uniqueDesc,
+                    image: uniqueImage,
+                    attributes: dynamicAttrs
+                };
+                
+                const filename = `nft_${String(i).padStart(4, '0')}_${uniqueName.replace(/[^a-z0-9]/gi, '_').substring(0, 30)}.json`;
+                batch.push({
+                    filename: filename,
+                    jsonObject: nftObject
+                });
+            }
+            return batch;
+        }
+
+        // Render batch file list in UI
+        function renderBatchFileList() {
+            if(generatedFiles.length === 0) {
+                batchFileListDiv.innerHTML = '<div style="color:#a78bfa; text-align:center; padding:1rem;">✨ No files. Use "Generate Batch" to create NFTs.</div>';
+                return;
+            }
+            let html = '';
+            generatedFiles.forEach((file, idx) => {
+                const shortName = file.filename.length > 40 ? file.filename.slice(0, 37) + '...' : file.filename;
+                html += `
+                    <div class="file-item">
+                        <span>📄 ${shortName}</span>
+                        <button class="btn" style="background:#4c1d95; padding:0.2rem 0.8rem; font-size:0.7rem; color:white;" data-idx="${idx}" data-single-batch-download>Download</button>
+                    </div>
+                `;
+            });
+            batchFileListDiv.innerHTML = html;
+            
+            // Add download listeners to each single batch file button
+            document.querySelectorAll('[data-single-batch-download]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.getAttribute('data-idx'));
+                    if(!isNaN(idx) && generatedFiles[idx]) {
+                        const file = generatedFiles[idx];
+                        const jsonStr = JSON.stringify(file.jsonObject, null, 2);
+                        const blob = new Blob([jsonStr], {type: "application/json"});
+                        saveAs(blob, file.filename);
+                    }
+                });
+            });
+        }
+
+        // Generate batch
+        generateBatchBtn.addEventListener('click', () => {
+            let count = parseInt(batchCountInput.value);
+            if(isNaN(count) || count < 1) count = 1;
+            if(count > 500) count = 500;
+            batchCountInput.value = count;
+            
+            const newBatch = generateBatchNFTs(count);
+            generatedFiles = [...newBatch]; // replace previous list
+            renderBatchFileList();
+            
+            // Toast notification
+            const toast = document.createElement('div');
+            toast.innerText = `✅ ${generatedFiles.length} NFT JSON files generated!`;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '25px';
+            toast.style.right = '25px';
+            toast.style.background = '#10b981';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '40px';
+            toast.style.fontWeight = 'bold';
+            toast.style.zIndex = '1000';
+            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        });
+
+        // Clear list
+        clearBatchListBtn.addEventListener('click', () => {
+            generatedFiles = [];
+            renderBatchFileList();
+        });
+
+        // Download all as ZIP
+        downloadAllZipBtn.addEventListener('click', async () => {
+            if(generatedFiles.length === 0) {
+                alert("No batch files generated! Please click 'Generate Batch' first.");
+                return;
+            }
+            const zip = new JSZip();
+            for(const file of generatedFiles) {
+                const jsonContent = JSON.stringify(file.jsonObject, null, 2);
+                zip.file(file.filename, jsonContent);
+            }
+            const zipBlob = await zip.generateAsync({type: "blob"});
+            saveAs(zipBlob, `nft_batch_${new Date().toISOString().slice(0,19)}.zip`);
+        });
+
+        // Initialize
+        initDefaultAttributes();
+        updatePreview();
+    })();
+</script>
 </body>
 </html>
