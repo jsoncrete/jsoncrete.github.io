@@ -1,25 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Lo-Fi NFT JSON Studio - Simple GIF Selector</title>
+    <title>RoboSym NFT JSON এডিটর - ইমেজ নাম্বার পরিবর্তন করুন</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(135deg, #0a0a1a 0%, #0f0f2a 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Inter', sans-serif;
             min-height: 100vh;
-            padding: 2rem 1.5rem;
+            padding: 2rem 1rem;
+            color: #eaeef5;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
@@ -29,731 +30,584 @@
         }
 
         .header h1 {
-            font-size: 2.8rem;
-            background: linear-gradient(135deg, #f5b041, #e67e22, #f39c12);
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #c084fc, #a855f7, #ec4899);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            font-weight: 800;
-            letter-spacing: -1px;
+            margin-bottom: 0.5rem;
         }
 
         .header p {
-            color: #f5cba7;
-            margin-top: 0.75rem;
-            font-size: 1.1rem;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            color: #9ca3af;
+            font-size: 1rem;
+            border-left: 3px solid #a855f7;
+            padding-left: 1rem;
+            max-width: 650px;
+            margin: 0 auto;
         }
 
         .card {
-            background: rgba(20, 20, 40, 0.85);
+            background: rgba(15, 25, 45, 0.65);
             backdrop-filter: blur(12px);
             border-radius: 2rem;
-            border: 1px solid rgba(243, 156, 18, 0.3);
-            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.3);
             padding: 1.8rem;
-            transition: transform 0.2s;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
         }
 
-        .card:hover {
-            transform: translateY(-4px);
-        }
-
-        .card h2 {
-            font-size: 1.6rem;
-            font-weight: 700;
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 1.5rem;
-            color: #fdebd0;
-            border-left: 5px solid #f39c12;
-            padding-left: 1rem;
+            border-bottom: 2px solid #2d3a5e;
+            padding-bottom: 0.7rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #6b21a5;
+            border-radius: 1.5rem;
+            padding: 2rem 1rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #c084fc;
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(95deg, #8b5cf6, #a855f7);
+            border: none;
+            padding: 0.7rem 1.6rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #a855f7;
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: #a855f720;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
         }
 
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         label {
             display: block;
             font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #fad7a0;
+            margin-bottom: 8px;
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: #cbd5e6;
         }
 
-        input, textarea {
+        input, .preview-box {
             width: 100%;
-            padding: 0.85rem 1rem;
-            background: #0f0f23;
-            border: 2px solid #e67e22;
+            padding: 0.8rem 1rem;
+            background: #0f172ad9;
+            border: 1px solid #334155;
             border-radius: 1rem;
-            font-size: 0.95rem;
-            color: #ffe6cc;
-            transition: all 0.2s;
-            outline: none;
-        }
-
-        input:focus, textarea:focus {
-            border-color: #f39c12;
-            box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.2);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .base-url-display {
-            background: #1e1e3a;
-            padding: 0.8rem;
-            border-radius: 1rem;
-            margin-bottom: 1rem;
-            font-family: monospace;
+            color: #f1f5f9;
+            font-family: 'Fira Code', monospace;
             font-size: 0.85rem;
-            word-break: break-all;
-            color: #f9e79f;
-            border-left: 3px solid #f39c12;
         }
 
-        .filename-input-group {
+        input:focus {
+            outline: none;
+            border-color: #c084fc;
+            box-shadow: 0 0 0 2px #a855f740;
+        }
+
+        .number-input-group {
             display: flex;
-            gap: 1rem;
+            gap: 12px;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        .filename-input-group input {
+        .number-input-group input {
             flex: 2;
             min-width: 150px;
         }
 
-        .filename-input-group button {
-            flex: 1;
-            min-width: 100px;
-            background: linear-gradient(135deg, #e67e22, #f39c12);
-            color: #0a0a1a;
-            border: none;
-            padding: 0.85rem 1rem;
+        .link-preview {
+            background: #0a0f1c;
+            padding: 0.75rem;
             border-radius: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .filename-input-group button:hover {
-            transform: scale(1.02);
-        }
-
-        .full-url-preview {
-            background: #0f0f23;
-            padding: 0.8rem;
-            border-radius: 0.8rem;
-            margin-top: 0.8rem;
-            font-family: monospace;
             font-size: 0.8rem;
-            color: #f5b041;
             word-break: break-all;
+            font-family: monospace;
+            border-left: 4px solid #a855f7;
+            margin-top: 8px;
         }
 
-        .attributes-section {
-            background: #0c0c1c;
-            border-radius: 1.2rem;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-
-        .attribute-item {
-            background: #1e1e3a;
-            border-radius: 1rem;
-            padding: 0.8rem;
-            margin-bottom: 0.8rem;
-            display: flex;
+        .attribute-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 0.8rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .attribute-item input {
-            flex: 1;
-            min-width: 120px;
-            background: #0f0f23;
-            border-color: #d35400;
-        }
-
-        .remove-attr-btn {
-            background: #c0392b;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .remove-attr-btn:hover {
-            background: #e74c3c;
-        }
-
-        .add-attr-btn {
-            background: linear-gradient(135deg, #e67e22, #f39c12);
-            color: white;
-            border: none;
-            padding: 0.7rem 1.5rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            transition: 0.2s;
-        }
-
-        .add-attr-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin: 1.5rem 0 1rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 3rem;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #e67e22, #f39c12);
-            color: #1a1a2e;
-            box-shadow: 0 4px 14px rgba(230, 126, 34, 0.4);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            color: white;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #f39c12;
-            color: #f39c12;
-        }
-
-        .preview-area {
-            background: #0a0a18;
-            border-radius: 1.2rem;
-            padding: 1rem;
-            margin-top: 1.5rem;
-            border: 1px solid #e67e22;
-        }
-
-        .json-preview {
-            background: #050510;
-            color: #f9e79f;
-            padding: 1rem;
-            border-radius: 1rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 280px;
-        }
-
-        .batch-list {
-            max-height: 280px;
-            overflow-y: auto;
             margin-top: 1rem;
-            background: #0a0a18;
-            border-radius: 1rem;
-            padding: 0.5rem;
         }
 
-        .file-item {
-            background: #1e1e3a;
-            margin: 0.5rem 0;
+        .attr-card {
+            background: #0b1120cc;
             padding: 0.6rem 1rem;
-            border-radius: 2rem;
+            border-radius: 1rem;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
+            border: 1px solid #2a3a55;
         }
 
-        .badge {
-            background: #e67e22;
-            color: #0a0a1a;
-            padding: 0.2rem 0.7rem;
-            border-radius: 2rem;
-            font-size: 0.7rem;
+        .attr-trait {
+            font-weight: 600;
+            color: #b9c7db;
+        }
+
+        .attr-value {
             font-weight: bold;
+            color: #f0a6ff;
         }
 
-        .batch-input-group {
+        .json-view {
+            background: #030617;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.7rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 250px;
+            border: 1px solid #2d3a60;
+        }
+
+        .flex-between {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 1.2rem;
         }
 
-        .batch-input-group input {
-            flex: 1;
+        .alert {
+            background: #00b89420;
+            border-left: 4px solid #00e5a0;
+            padding: 0.9rem;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
         }
 
-        @media (max-width: 900px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            body {
-                padding: 1rem;
-            }
+        .info-badge {
+            background: #1e293b;
+            padding: 0.3rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+            display: inline-block;
         }
 
         footer {
             text-align: center;
-            margin-top: 2.5rem;
-            color: #f5b041;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            color: #4b556b;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 1.2rem;
+            }
+            .header h1 {
+                font-size: 1.6rem;
+            }
         }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div class="header">
-        <h1>🎧 Lo-Fi NFT JSON Studio</h1>
-        <p>Just enter the GIF filename (1.gif, 2.gif, etc.) - Base URL is fixed!</p>
+        <h1>🤖 RoboSym JSON Editor</h1>
+        <p>JSON ফাইল আপলোড করুন → ইমেজ নাম্বার পরিবর্তন করুন (1 থেকে 10000 পর্যন্ত) → বাকি সব অ্যাট্রিবিউট অপরিবর্তিত রেখে ডাউনলোড করুন (US সময় অনুযায়ী)</p>
     </div>
 
-    <div class="main-grid">
-        <!-- LEFT PANEL: Single NFT Creator -->
+    <!-- আপলোড সেকশন -->
+    <div class="card">
+        <div class="card-title">
+            📂 ১. JSON ফাইল আপলোড করুন
+        </div>
+        <div id="uploadZone" class="upload-area">
+            <div style="font-size: 2.5rem; margin-bottom: 8px;">📁</div>
+            <p>ক্লিক করুন অথবা ড্রাগ & ড্রপ করুন</p>
+            <p style="font-size: 0.7rem; opacity: 0.7;">শুধুমাত্র .json ফাইল</p>
+            <input type="file" id="fileInput" accept=".json" class="file-input">
+        </div>
+        <div id="fileInfo" style="margin-top: 15px; font-size: 0.85rem;"></div>
+    </div>
+
+    <!-- এডিটর সেকশন (প্রথমে লুকানো) -->
+    <div id="editorSection" style="display: none;">
+        <!-- ইমেজ নাম্বার পরিবর্তন -->
         <div class="card">
-            <h2>🎨 Create Single NFT JSON</h2>
-            
-            <div class="base-url-display">
-                📁 Base URL: https://raw.githubusercontent.com/HorizonLofi/Horizonlofi.github.io/main/Gif/
+            <div class="card-title">
+                🖼️ ২. ইমেজ নম্বর পরিবর্তন করুন
             </div>
-
             <div class="form-group">
-                <label>🏷️ NFT Name</label>
-                <input type="text" id="nftName" value="Lo-Fi">
+                <label>বর্তমান ইমেজ লিংক</label>
+                <div id="currentImagePreview" class="link-preview">—</div>
             </div>
-
             <div class="form-group">
-                <label>📝 Description</label>
-                <textarea id="nftDescription">On-chain mission to mint your smile!</textarea>
-            </div>
-
-            <div class="form-group">
-                <label>🖼️ GIF Filename (Example: 1.gif, 2.gif, 3.gif)</label>
-                <div class="filename-input-group">
-                    <input type="text" id="gifFilename" placeholder="1.gif" value="1.gif">
-                    <button id="applyFilenameBtn">Apply & Preview</button>
+                <label>নতুন ইমেজ নম্বর (শুধু সংখ্যা)</label>
+                <div class="number-input-group">
+                    <input type="number" id="imageNumberInput" value="1" min="1" max="20000" step="1">
+                    <button id="applyNumberBtn" class="btn">🔄 লিংক আপডেট করুন</button>
                 </div>
-                <div class="full-url-preview" id="fullUrlPreview">
-                    🔗 Full URL: https://raw.githubusercontent.com/HorizonLofi/Horizonlofi.github.io/main/Gif/1.gif
+                <div class="info-badge" style="margin-top: 10px;">
+                    💡 উদাহরণ: 1.png → 2.png → 9999.png
                 </div>
             </div>
-
             <div class="form-group">
-                <label>🌐 Animation URL</label>
-                <input type="text" id="animationUrl" value="https://horizonlofi.github.io/index.html?tokenId=">
-            </div>
-
-            <div class="attributes-section">
-                <label style="margin-bottom: 0.8rem;">✨ Custom Attributes</label>
-                <div id="attributesContainer"></div>
-                <button type="button" class="add-attr-btn" id="addAttributeBtn">+ Add Attribute</button>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn btn-primary" id="singleDownloadBtn">⭐ Download JSON</button>
-                <button class="btn btn-outline" id="resetFormBtn">⟳ Reset</button>
-            </div>
-
-            <div class="preview-area">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <strong>🔍 JSON Preview</strong>
-                    <span class="badge">Current</span>
+                <label>নতুন জেনারেট হওয়া লিংক</label>
+                <div id="generatedLink" class="link-preview" style="background:#150e24; color:#c084fc;">
+                    https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/1.png
                 </div>
-                <div class="json-preview" id="jsonPreview">Loading...</div>
             </div>
         </div>
 
-        <!-- RIGHT PANEL: Batch Generator -->
+        <!-- অ্যাট্রিবিউট ডিসপ্লে (শুধু দেখানো) -->
         <div class="card">
-            <h2>⚙️ Batch Generator (Sequential GIFs)</h2>
-            <p style="color:#f5cba7; margin-bottom: 1rem;">Generate multiple JSONs with sequential filenames.</p>
-            
-            <div class="form-group">
-                <label>Start from (filename):</label>
-                <div class="batch-input-group">
-                    <input type="text" id="startFilename" placeholder="1.gif" value="1.gif">
-                    <span style="color:#f5cba7;">to</span>
-                    <input type="text" id="endFilename" placeholder="500.gif" value="500.gif">
-                </div>
-                <small style="color:#f5b041;">Example: 1.gif to 500.gif will generate 1.gif, 2.gif, 3.gif... 500.gif</small>
+            <div class="card-title">
+                🧬 মেটাডেটা (অপরিবর্তিত থাকবে)
             </div>
-
-            <div class="btn-group">
-                <button class="btn btn-success" id="generateBatchBtn">📦 Generate Batch (ZIP)</button>
-                <button class="btn btn-outline" id="clearBatchListBtn">🗑️ Clear List</button>
+            <div id="attributesDisplay" class="attribute-grid"></div>
+            <div style="margin-top: 1rem;">
+                <label>অন্যান্য তথ্য (name, description, id, palette)</label>
+                <div id="metaOverview" class="json-view"></div>
             </div>
+        </div>
 
-            <div style="margin-top: 1.5rem;">
-                <strong>📋 Generated Files</strong>
-                <div id="batchFileList" class="batch-list">
-                    <div style="color:#f5b041; text-align:center; padding:1rem;">No files yet</div>
-                </div>
-                <button id="downloadAllZipBtn" class="btn btn-primary" style="background: #f39c12; width:100%; margin-top: 1rem;">📥 Download All as ZIP</button>
+        <!-- ডাউনলোড -->
+        <div class="card">
+            <div class="card-title">
+                💾 ৩. ডাউনলোড করুন
+            </div>
+            <div class="flex-between">
+                <button id="downloadBtn" class="btn">⬇️ JSON ডাউনলোড করুন</button>
+                <button id="resetBtn" class="btn btn-outline">🔄 নতুন ফাইল আপলোড করুন</button>
+            </div>
+            <div id="downloadNote" class="alert">
+                ✅ 'created' ফিল্ডটি বর্তমান US সময় (America/New_York) অনুযায়ী আপডেট হবে।
             </div>
         </div>
     </div>
+
     <footer>
-        💡 Simply enter the GIF filename (e.g., 1.gif) and the full URL is built automatically!
+        🔗 ইমেজ বেস লিংক: <strong>https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/</strong>{নম্বর}.png<br>
+        📝 ট্রেইট, পাওয়ার, ডিফেন্স, স্পীড, র্যারিটি ইত্যাদি পুরোপুরি অপরিবর্তিত থাকবে।
     </footer>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
 <script>
-    (function() {
-        const BASE_URL = "https://raw.githubusercontent.com/HorizonLofi/Horizonlofi.github.io/main/Gif/";
+    // ======================= গ্লোবাল ভেরিয়েবল =======================
+    let originalJsonData = null;      // আসল JSON অবজেক্ট
+    let workingJsonData = null;       // কাজের JSON (ইমেজ পরিবর্তন করে রাখব)
+
+    // ডম এলিমেন্ট
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfoDiv = document.getElementById('fileInfo');
+    const editorSection = document.getElementById('editorSection');
+    const currentImagePreview = document.getElementById('currentImagePreview');
+    const imageNumberInput = document.getElementById('imageNumberInput');
+    const applyNumberBtn = document.getElementById('applyNumberBtn');
+    const generatedLinkDiv = document.getElementById('generatedLink');
+    const attributesDisplay = document.getElementById('attributesDisplay');
+    const metaOverview = document.getElementById('metaOverview');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // ======================= ইউটিলিটি ফাংশন =======================
+    // নির্দিষ্ট ইমেজ লিংক তৈরির ফাংশন (শুধু সংখ্যা দিলেই পুরো লিংক)
+    function buildImageUrlByNumber(number) {
+        return `https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/${number}.png`;
+    }
+
+    // লিংক থেকে সংখ্যা বের করা (যেমন শেষে /123.png থেকে 123)
+    function extractNumberFromUrl(url) {
+        if (!url) return 1;
+        const match = url.match(/\/(\d+)\.png$/);
+        if (match && match[1]) {
+            return parseInt(match[1], 10);
+        }
+        return 1;
+    }
+
+    // বর্তমান US সময় (America/New_York) আইএসও ফরম্যাটে তৈরি করা (অফসেটসহ)
+    function getCurrentUSTimeISO() {
+        try {
+            const now = new Date();
+            // আমেরিকান ইস্টার্ন টাইমে তারিখ ও সময় বের করা
+            const formatter = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            const parts = formatter.formatToParts(now);
+            const dateTimeMap = {};
+            parts.forEach(part => {
+                if (part.type !== 'literal') dateTimeMap[part.type] = part.value;
+            });
+            const year = dateTimeMap.year;
+            const month = dateTimeMap.month;
+            const day = dateTimeMap.day;
+            const hour = dateTimeMap.hour;
+            const minute = dateTimeMap.minute;
+            const second = dateTimeMap.second;
+            
+            // টাইমজোন অফসেট বের করা (America/New_York)
+            const usDate = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+            const offsetMinutes = -usDate.getTimezoneOffset(); // America/New_York গ্রীষ্মে -240, শীতে -300 -> offset -4 বা -5
+            const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+            const absOffset = Math.abs(offsetMinutes);
+            const offsetHour = String(Math.floor(absOffset / 60)).padStart(2, '0');
+            const offsetMin = String(absOffset % 60).padStart(2, '0');
+            const offsetStr = `${offsetSign}${offsetHour}:${offsetMin}`;
+            
+            return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetStr}`;
+        } catch (e) {
+            console.warn("US timezone error, fallback to UTC", e);
+            return new Date().toISOString();
+        }
+    }
+
+    // JSON অবজেক্টে ইমেজ আপডেট করা
+    function updateImageInJson(number) {
+        if (!workingJsonData) return false;
+        const newUrl = buildImageUrlByNumber(number);
+        workingJsonData.image = newUrl;
+        return true;
+    }
+
+    // সম্পূর্ণ UI রিফ্রেশ করা (বর্তমান workingJsonData দেখানো)
+    function refreshUI() {
+        if (!workingJsonData) return;
         
-        // DOM Elements
-        const nftNameInput = document.getElementById('nftName');
-        const nftDescInput = document.getElementById('nftDescription');
-        const gifFilenameInput = document.getElementById('gifFilename');
-        const applyFilenameBtn = document.getElementById('applyFilenameBtn');
-        const animationUrlInput = document.getElementById('animationUrl');
-        const attributesContainer = document.getElementById('attributesContainer');
-        const addAttributeBtn = document.getElementById('addAttributeBtn');
-        const jsonPreviewDiv = document.getElementById('jsonPreview');
-        const singleDownloadBtn = document.getElementById('singleDownloadBtn');
-        const resetFormBtn = document.getElementById('resetFormBtn');
-        const generateBatchBtn = document.getElementById('generateBatchBtn');
-        const clearBatchListBtn = document.getElementById('clearBatchListBtn');
-        const downloadAllZipBtn = document.getElementById('downloadAllZipBtn');
-        const batchFileListDiv = document.getElementById('batchFileList');
-        const startFilenameInput = document.getElementById('startFilename');
-        const endFilenameInput = document.getElementById('endFilename');
-        const fullUrlPreviewDiv = document.getElementById('fullUrlPreview');
-
-        let generatedFiles = [];
-        let attributeCounter = 0;
-
-        // Build full image URL from filename
-        function buildImageUrl(filename) {
-            let cleanFilename = filename.trim();
-            if (!cleanFilename) cleanFilename = "1.gif";
-            return BASE_URL + cleanFilename;
-        }
-
-        // Update URL preview
-        function updateUrlPreview() {
-            const filename = gifFilenameInput.value.trim();
-            const fullUrl = buildImageUrl(filename);
-            fullUrlPreviewDiv.innerHTML = `🔗 Full URL: ${fullUrl}`;
-        }
-
-        // Attribute management
-        function createAttributeRow(traitType = '', value = '') {
-            const rowDiv = document.createElement('div');
-            rowDiv.className = 'attribute-item';
-            rowDiv.setAttribute('data-attr-id', `attr_${attributeCounter++}`);
-            
-            const typeInput = document.createElement('input');
-            typeInput.type = 'text';
-            typeInput.placeholder = 'Trait Type';
-            typeInput.value = traitType;
-            typeInput.classList.add('attr-type');
-            
-            const valueInput = document.createElement('input');
-            valueInput.type = 'text';
-            valueInput.placeholder = 'Value';
-            valueInput.value = value;
-            valueInput.classList.add('attr-value');
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.textContent = '✖ Remove';
-            removeBtn.className = 'remove-attr-btn';
-            removeBtn.onclick = () => rowDiv.remove();
-            
-            rowDiv.appendChild(typeInput);
-            rowDiv.appendChild(valueInput);
-            rowDiv.appendChild(removeBtn);
-            return rowDiv;
-        }
-
-        function initDefaultAttributes() {
-            attributesContainer.innerHTML = '';
-            attributeCounter = 0;
-            const defaultAttr = createAttributeRow('Accessory', 'Domi');
-            attributesContainer.appendChild(defaultAttr);
-        }
-
-        addAttributeBtn.addEventListener('click', () => {
-            const newAttr = createAttributeRow('', '');
-            attributesContainer.appendChild(newAttr);
-        });
-
-        function getCurrentAttributes() {
-            const attributes = [];
-            const rows = attributesContainer.querySelectorAll('.attribute-item');
-            rows.forEach(row => {
-                const typeInput = row.querySelector('.attr-type');
-                const valueInput = row.querySelector('.attr-value');
-                const traitType = typeInput ? typeInput.value.trim() : '';
-                const traitValue = valueInput ? valueInput.value.trim() : '';
-                if (traitType !== '' || traitValue !== '') {
-                    attributes.push({
-                        trait_type: traitType || 'unknown',
-                        value: traitValue || 'unknown'
-                    });
-                }
+        // 1. ইমেজ প্রিভিউ
+        const currentImg = workingJsonData.image || "";
+        currentImagePreview.innerText = currentImg;
+        const currentNum = extractNumberFromUrl(currentImg);
+        imageNumberInput.value = currentNum;
+        const previewUrl = buildImageUrlByNumber(currentNum);
+        generatedLinkDiv.innerText = previewUrl;
+        
+        // 2. অ্যাট্রিবিউট দেখানো
+        if (workingJsonData.attributes && Array.isArray(workingJsonData.attributes)) {
+            attributesDisplay.innerHTML = "";
+            workingJsonData.attributes.forEach(attr => {
+                const div = document.createElement('div');
+                div.className = "attr-card";
+                const traitName = attr.trait_type || "Trait";
+                const traitVal = attr.value ?? "—";
+                div.innerHTML = `<span class="attr-trait">${escapeHtml(String(traitName))}</span><span class="attr-value">${escapeHtml(String(traitVal))}</span>`;
+                attributesDisplay.appendChild(div);
             });
-            return attributes;
+        } else {
+            attributesDisplay.innerHTML = "<div class='attr-card'>কোন অ্যাট্রিবিউট পাওয়া যায়নি</div>";
         }
+        
+        // 3. অন্যান্য মেটাডেটা (image বাদে)
+        const metaCopy = { ...workingJsonData };
+        delete metaCopy.attributes;
+        delete metaCopy.image;
+        metaOverview.innerText = JSON.stringify(metaCopy, null, 2);
+    }
 
-        // Build current NFT JSON
-        function getCurrentNFTJSON() {
-            const name = nftNameInput.value.trim() || "Lo-Fi";
-            const description = nftDescInput.value.trim() || "On-chain mission to mint your smile!";
-            const filename = gifFilenameInput.value.trim() || "1.gif";
-            const imageUrl = buildImageUrl(filename);
-            const animationUrl = animationUrlInput.value.trim() || "https://horizonlofi.github.io/";
-            const attributes = getCurrentAttributes();
+    // নাম্বার পরিবর্তন করে অ্যাপ্লাই করা
+    function applyNumberChange() {
+        if (!workingJsonData) {
+            alert("কোন JSON ফাইল লোড করা হয়নি!");
+            return;
+        }
+        let newNumber = parseInt(imageNumberInput.value, 10);
+        if (isNaN(newNumber) || newNumber < 1) newNumber = 1;
+        updateImageInJson(newNumber);
+        refreshUI();
+    }
+
+    // JSON ফাইল প্রসেসিং
+    function processJsonFile(fileContent, fileName) {
+        try {
+            const parsed = JSON.parse(fileContent);
+            // বেসিক ভ্যালিডেশন: image ফিল্ড থাকতে হবে
+            if (!parsed.hasOwnProperty('image')) {
+                throw new Error("JSON ফাইলে 'image' কী নেই। সঠিক ফাইল দিন।");
+            }
+            // গভীর কপি তৈরি
+            originalJsonData = JSON.parse(JSON.stringify(parsed));
+            workingJsonData = JSON.parse(JSON.stringify(parsed));
             
-            return {
-                name: name,
-                description: description,
-                image: imageUrl,
-                animation_url: animationUrl,
-                attributes: attributes
-            };
+            // ইমেজ URL যদি আমাদের বেস প্যাটার্নের না হয়, তবুও নাম্বার বের করার চেষ্টা করবে
+            refreshUI();
+            fileInfoDiv.innerHTML = `<span style="color:#a5f7b0;">✅ সফলভাবে লোড হয়েছে: ${escapeHtml(fileName)}</span>`;
+            editorSection.style.display = "block";
+            editorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+            alert("JSON পার্সিং ব্যর্থ হয়েছে: " + err.message);
+            fileInfoDiv.innerHTML = `<span style="color:#ff9e8f;">❌ ত্রুটি: ${err.message}</span>`;
+            editorSection.style.display = "none";
+            workingJsonData = null;
         }
+    }
 
-        function updatePreview() {
-            const nftData = getCurrentNFTJSON();
-            jsonPreviewDiv.textContent = JSON.stringify(nftData, null, 2);
+    // ডাউনলোড ফাংশন - US সময় আপডেট করে
+    function downloadFinalJson() {
+        if (!workingJsonData) {
+            alert("কোন JSON ডেটা নেই। প্রথমে ফাইল আপলোড করুন।");
+            return;
         }
-
-        // Apply filename button
-        applyFilenameBtn.addEventListener('click', () => {
-            updateUrlPreview();
-            updatePreview();
+        
+        // কাজের JSON এর কপি তৈরি
+        const outputJson = JSON.parse(JSON.stringify(workingJsonData));
+        
+        // created ফিল্ড আপডেট (US সময়)
+        const usTime = getCurrentUSTimeISO();
+        outputJson.created = usTime;
+        
+        // JSON স্ট্রিং তৈরি
+        const jsonString = JSON.stringify(outputJson, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        // ফাইলের নাম (পুরাতন নামের সাথে _updated বা ডিফল্ট)
+        a.download = "RoboSym_updated.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // নোটিশ দেখানো
+        const noteDiv = document.getElementById('downloadNote');
+        if (noteDiv) {
+            noteDiv.innerHTML = `✅ ডাউনলোড সম্পন্ন! <br> 🕒 created (US সময়): ${usTime} <br> 🖼️ ইমেজ লিংক: ${outputJson.image}`;
+            setTimeout(() => {
+                if (noteDiv) noteDiv.innerHTML = `✅ 'created' ফিল্ডটি বর্তমান US সময় (America/New_York) অনুযায়ী আপডেট হবে।`;
+            }, 5000);
+        }
+    }
+    
+    // রিসেট ফাংশন (ফাইল ক্লিয়ার)
+    function resetEditor() {
+        originalJsonData = null;
+        workingJsonData = null;
+        editorSection.style.display = "none";
+        fileInput.value = '';
+        fileInfoDiv.innerHTML = '';
+        imageNumberInput.value = '1';
+        generatedLinkDiv.innerText = 'https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/1.png';
+        currentImagePreview.innerText = '—';
+        attributesDisplay.innerHTML = '';
+        metaOverview.innerText = '';
+    }
+    
+    // HTML escaping
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
         });
-
-        // Live updates
-        nftNameInput.addEventListener('input', updatePreview);
-        nftDescInput.addEventListener('input', updatePreview);
-        gifFilenameInput.addEventListener('input', () => {
-            updateUrlPreview();
-            updatePreview();
-        });
-        animationUrlInput.addEventListener('input', updatePreview);
-        attributesContainer.addEventListener('input', updatePreview);
-        attributesContainer.addEventListener('change', updatePreview);
-
-        // Download single JSON
-        function downloadSingleJSON() {
-            const nftData = getCurrentNFTJSON();
-            const filename = gifFilenameInput.value.trim().replace(/\.gif$/, '') || "1";
-            const safeName = nftData.name.replace(/[^a-z0-9]/gi, '_').substring(0, 30);
-            const downloadFilename = `${safeName}_${filename}.json`;
-            const jsonStr = JSON.stringify(nftData, null, 2);
-            const blob = new Blob([jsonStr], {type: "application/json"});
-            saveAs(blob, downloadFilename);
+    }
+    
+    // ফাইল হ্যান্ডেল করা (FileReader)
+    function handleFileSelected(file) {
+        if (!file || (!file.type.includes('json') && !file.name.endsWith('.json'))) {
+            alert("শুধুমাত্র .json ফাইল আপলোড করুন।");
+            return;
         }
-        singleDownloadBtn.addEventListener('click', downloadSingleJSON);
-
-        // Reset form
-        function resetForm() {
-            nftNameInput.value = "Lo-Fi";
-            nftDescInput.value = "On-chain mission to mint your smile!";
-            gifFilenameInput.value = "1.gif";
-            animationUrlInput.value = "https://horizonlofi.github.io/";
-            initDefaultAttributes();
-            updateUrlPreview();
-            updatePreview();
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            processJsonFile(e.target.result, file.name);
+        };
+        reader.onerror = () => {
+            alert("ফাইল পড়ার সময় ত্রুটি ঘটেছে!");
+        };
+        reader.readAsText(file, "UTF-8");
+    }
+    
+    // ======================= ইভেন্ট লিসেনার =======================
+    uploadZone.addEventListener('click', () => fileInput.click());
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = "#c084fc";
+        uploadZone.style.background = "#2e1a4a30";
+    });
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.style.borderColor = "#6b21a5";
+        uploadZone.style.background = "rgba(0,0,0,0.3)";
+    });
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.borderColor = "#6b21a5";
+        uploadZone.style.background = "rgba(0,0,0,0.3)";
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelected(files[0]);
         }
-        resetFormBtn.addEventListener('click', resetForm);
-
-        // Parse numbers from filename like "1.gif", "2.gif", "500.gif"
-        function extractNumberFromFilename(filename) {
-            const match = filename.match(/(\d+)/);
-            return match ? parseInt(match[1]) : null;
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelected(e.target.files[0]);
         }
-
-        // Generate sequential filenames from start to end
-        function generateSequentialFilenames(startFile, endFile) {
-            const startNum = extractNumberFromFilename(startFile);
-            const endNum = extractNumberFromFilename(endFile);
-            
-            if (startNum === null || endNum === null) {
-                alert("Please use format like '1.gif', '2.gif', '500.gif'");
-                return [];
-            }
-            
-            if (startNum > endNum) {
-                alert("Start number must be less than or equal to End number");
-                return [];
-            }
-            
-            if ((endNum - startNum + 1) > 500) {
-                alert("Maximum 500 files allowed!");
-                return [];
-            }
-            
-            const filenames = [];
-            for (let i = startNum; i <= endNum; i++) {
-                filenames.push(`${i}.gif`);
-            }
-            return filenames;
-        }
-
-        // Generate batch
-        function generateBatchNFTs(filenames) {
-            const batch = [];
-            const name = nftNameInput.value.trim() || "Lo-Fi";
-            const description = nftDescInput.value.trim() || "On-chain mission to mint your smile!";
-            const animationUrl = animationUrlInput.value.trim() || "https://horizonlofi.github.io/";
-            const templateAttributes = getCurrentAttributes();
-            
-            for (let idx = 0; idx < filenames.length; idx++) {
-                const filename = filenames[idx];
-                const imageUrl = buildImageUrl(filename);
-                const editionNum = extractNumberFromFilename(filename);
-                
-                const editionAttr = {
-                    trait_type: "Edition",
-                    value: `#${editionNum}`
-                };
-                const dynamicAttributes = [...templateAttributes.map(attr => ({ ...attr })), editionAttr];
-                
-                const nftObject = {
-                    name: name,
-                    description: description,
-                    image: imageUrl,
-                    animation_url: animationUrl,
-                    attributes: dynamicAttributes
-                };
-                
-                const paddedNum = String(editionNum).padStart(4, '0');
-                const safeName = name.replace(/[^a-z0-9]/gi, '_').substring(0, 30);
-                const jsonFilename = `nft_${paddedNum}_${safeName}.json`;
-                
-                batch.push({
-                    filename: jsonFilename,
-                    jsonObject: nftObject,
-                    gifFile: filename
-                });
-            }
-            return batch;
-        }
-
-        function renderBatchFileList() {
-            if (generatedFiles.length === 0) {
-                batchFileListDiv.innerHTML = '<div style="color:#f5b041; text-align:center; padding:1rem;">No files generated yet</div>';
-                return;
-            }
-            let html = '';
-            generatedFiles.forEach((file, idx) => {
-                html += `
-                    <div class="file-item">
-                        <span>🎞️ ${file.gifFile} → ${file.filename.substring(0, 35)}...</span>
-                        <button class="btn" style="background:#d35400; padding:0.2rem 0.9rem; font-size:0.7rem; color:white; border-radius:2rem;" data-idx="${idx}">📄 JSON</button>
-                    </div>
-                `;
-            });
-            batchFileListDiv.innerHTML = html;
-            
-            document.querySelectorAll('[data-idx]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const idx = parseInt(btn.getAttribute('data-idx'));
-                    if (!isNaN(idx) && generatedFiles[idx]) {
-                        const file = generatedFiles[idx];
-                        const jsonStr = JSON.stringify(file.jsonObject, null, 2);
-                        const blob = new Blob([jsonStr], {type: "application/json"});
-                        saveAs(blob, file.filename);
-                    }
-                });
-            });
-        }
-
-        generateBatchBtn.addEventListener('click', () => {
-            const startFile = startFilenameInput.value.trim();
-            const endFile = endFilenameInput.value.trim();
-            
-            if (!startFile || !endFile) {
-                alert("Please enter both start and end filenames!");
-                return;
-            }
-            
-            const filenames = generateSequentialFilenames(startFile, endFile);
-            if (filenames.length === 0) return;
-            
-            const newBatch = generateBatchNFTs(filenames);
-            generatedFiles = newBatch;
-            renderBatchFileList();
-            
-            const toast = document.createElement('div');
-            toast.innerText = `✅ ${generatedFiles.length} JSON files generated! (${filenames[0]} → ${filenames[filenames.length-1]})`;
-            toast.style.position = 'fixed';
-            toast.style.bottom = '25px';
-            toast.style.right = '25px';
-            toast.style.background = '#2ecc71';
-            toast.style.color = '#0a0a1a';
-            toast.style.padding = '12px 24px';
-            toast.style.borderRadius = '40px';
-            toast.style.fontWeight = 'bold';
-            toast.style.zIndex = '1000';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        });
-
-        clearBatchListBtn.addEventListener('click', () => {
-            generatedFiles = [];
-            renderBatchFileList();
-        });
-
-        downloadAllZipBtn.addEventListener('click', async () => {
-            if (generatedFiles.length === 0) {
-                alert("No batch files generated! Please generate batch first.");
-                return;
-            }
-            const zip = new JSZip();
-            for (const file of generatedFiles) {
-                const jsonContent = JSON.stringify(file.jsonObject, null, 2);
-                zip.file(file.filename, jsonContent);
-            }
-            const zipBlob = await zip.generateAsync({type: "blob"});
-            const timestamp = new Date().toISOString().slice(0,19).replace(/:/g, '-');
-            saveAs(zipBlob, `lofi_nft_batch_${timestamp}.zip`);
-        });
-
-        // Initialize
-        initDefaultAttributes();
-        updateUrlPreview();
-        updatePreview();
-    })();
+    });
+    
+    applyNumberBtn.addEventListener('click', applyNumberChange);
+    imageNumberInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') applyNumberChange();
+    });
+    downloadBtn.addEventListener('click', downloadFinalJson);
+    resetBtn.addEventListener('click', resetEditor);
+    
+    // শুরুতে রিসেট অবস্থা
+    resetEditor();
 </script>
 </body>
 </html>
