@@ -176,6 +176,10 @@
             color: #f87171;
         }
 
+        .log-line.warning {
+            color: #fbbf24;
+        }
+
         .stats {
             display: flex;
             gap: 1rem;
@@ -218,6 +222,15 @@
             color: #4b556b;
             margin-top: 2rem;
         }
+
+        .number-format-info {
+            background: #1e1b4b;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            border-left: 3px solid #a855f7;
+        }
     </style>
 </head>
 <body>
@@ -225,8 +238,7 @@
 <div class="container">
     <div class="header">
         <h1>🗜️ RoboSym Batch JSON Processor</h1>
-        <p>📦 জিপ ফাইল আপলোড করুন (১০,০০০টি JSON) → প্রতিটি ফাইলের `.json` এক্সটেনশন সরিয়ে ফেলুন → জিপ আকারে ডাউনলোড করুন<br>
-        ⚡ সম্পূর্ণ প্রক্রিয়া ব্রাউজারেই সম্পন্ন হবে, কোনো সার্ভার প্রয়োজন নেই</p>
+        <p>📦 জিপ ফাইল আপলোড করুন → প্রতিটি JSON ফাইলের নাম থেকে `.json` এক্সটেনশন সরিয়ে ফেলুন → <strong style="color:#c084fc">1, 2, 3 ... 10000</strong> ফরম্যাটে জিপ আকারে ডাউনলোড করুন</p>
     </div>
 
     <!-- আপলোড সেকশন -->
@@ -247,8 +259,14 @@
     <div id="processorSection" style="display: none;">
         <div class="card">
             <div class="card-title">
-                ⚙️ ২. এক্সটেনশন রিমুভ ও জিপ তৈরি
+                ⚙️ ২. এক্সটেনশন রিমুভ ও জিপ তৈরি করুন
             </div>
+            
+            <div class="number-format-info">
+                💡 <strong>ফাইল নামের ফরম্যাট:</strong> আসল ফাইলের নাম যাই হোক না কেন, আউটপুট হবে <strong>1, 2, 3, 4 ... N</strong> (যেখানে N হলো মোট JSON ফাইলের সংখ্যা)<br>
+                📌 যেমন: 1.json → 1, 1000.json → 1000 (শুধু সংখ্যা)
+            </div>
+            
             <div class="stats">
                 <div class="badge" id="totalFilesBadge">মোট JSON ফাইল: ০</div>
                 <div class="badge" id="processedBadge">প্রক্রিয়াকৃত: ০</div>
@@ -257,8 +275,8 @@
                 <div id="progressBar" class="progress-bar" style="width:0%">0%</div>
             </div>
             <div class="flex-between">
-                <button id="processBtn" class="btn" disabled>🚀 এক্সটেনশন রিমুভ ও জিপ তৈরি করুন</button>
-                <button id="downloadZipBtn" class="btn" disabled>💾 প্রসেসড জিপ ডাউনলোড করুন</button>
+                <button id="processBtn" class="btn" disabled>🚀 এক্সটেনশন রিমুভ করুন</button>
+                <button id="downloadZipBtn" class="btn" disabled>💾 জিপ ডাউনলোড করুন (1-10000)</button>
                 <button id="resetBtn" class="btn btn-outline">🔄 নতুন জিপ আপলোড করুন</button>
             </div>
             <div id="previewArea" style="margin-top: 1rem;">
@@ -274,7 +292,7 @@
     </div>
 
     <footer>
-        🔧 প্রতিটি .json ফাইল থেকে .json এক্সটেনশন সরিয়ে নতুন নাম দেওয়া হবে (যেমন: 1.json → 1)।<br>
+        🔧 প্রতিটি .json ফাইল থেকে .json এক্সটেনশন সরিয়ে নাম পরিবর্তন করে <strong>সংখ্যা (1,2,3...)</strong> ফরম্যাটে করা হবে।<br>
         📁 মেটাডাটার ভেতরের ছবির লিংক বা অন্য কোনো ডাটা পরিবর্তন হবে না, শুধু ফাইলের নাম পরিবর্তন করা হবে।<br>
         ✅ সম্পূর্ণ প্রক্রিয়া লোকাল ব্রাউজারে (JSZip ব্যবহার করে) পরিচালিত হয়।
     </footer>
@@ -296,15 +314,16 @@
     const samplePreview = document.getElementById('samplePreview');
 
     // গ্লোবাল ভেরিয়েবল
-    let uploadedZipFile = null;           // আসল ফাইল ব্লব
-    let extractedJsonFiles = [];           // { name: "1.json", content: string, newName: "1" }
-    let processedZipBlob = null;           // প্রসেস করা জিপ ব্লব
+    let uploadedZipFile = null;
+    let jsonContents = [];           // শুধু JSON কন্টেন্ট স্ট্রিং array (সংখ্যা顺序 অনুযায়ী সাজানো)
+    let processedZipBlob = null;
     let isProcessing = false;
+    let originalFileNames = [];      // আসল ফাইলের নাম (sorting এর জন্য)
 
     // লগ অ্যাড করার ফাংশন
     function addLog(message, type = 'info') {
         const logDiv = document.createElement('div');
-        logDiv.className = `log-line ${type === 'success' ? 'success' : (type === 'error' ? 'error' : '')}`;
+        logDiv.className = `log-line ${type === 'success' ? 'success' : (type === 'error' ? 'error' : (type === 'warning' ? 'warning' : ''))}`;
         logDiv.innerHTML = message;
         logArea.appendChild(logDiv);
         logDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -322,52 +341,60 @@
         processedBadge.innerText = `প্রক্রিয়াকৃত: ${current}/${total}`;
     }
 
-    // জিপ ফাইল থেকে JSON ফাইলগুলো বের করা (শুধুমাত্র .json এক্সটেনশন)
-    async function extractJsonFilesFromZip(zipFile) {
+    // ফাইলের নাম থেকে সংখ্যা বের করার ফাংশন (sorting এর জন্য)
+    function extractNumberFromFilename(filename) {
+        // শুধু ফাইলের নাম (ফোল্ডার পাথ বাদে)
+        const baseName = filename.split('/').pop();
+        // .json বাদ দিয়ে সংখ্যা বের করার চেষ্টা
+        const nameWithoutExt = baseName.replace(/\.json$/i, '');
+        const num = parseInt(nameWithoutExt, 10);
+        return isNaN(num) ? Infinity : num;
+    }
+
+    // জিপ ফাইল থেকে JSON ফাইলগুলো বের করা এবং সংখ্যা অনুযায়ী সাজানো
+    async function extractAndSortJsonFiles(zipFile) {
         return new Promise((resolve, reject) => {
             const JSZipLib = window.JSZip;
             const zip = new JSZipLib();
             zip.loadAsync(zipFile).then(async (zipData) => {
-                const jsonFiles = [];
+                const jsonItems = [];
                 const allFiles = Object.keys(zipData.files);
-                const totalFiles = allFiles.length;
-                let processed = 0;
-
+                
                 for (const filename of allFiles) {
                     const zipEntry = zipData.files[filename];
-                    // ফোল্ডার স্কিপ, শুধু .json ফাইল নিবো
                     if (!zipEntry.dir && filename.toLowerCase().endsWith('.json')) {
                         try {
                             const content = await zipEntry.async('string');
-                            // JSON ভ্যালিডিটি চেক (নরম চেক)
-                            try {
-                                JSON.parse(content);
-                                jsonFiles.push({
-                                    originalPath: filename,
-                                    name: filename.split('/').pop(), // শুধু ফাইলের নাম
-                                    content: content,
-                                });
-                            } catch (jsonErr) {
-                                addLog(`⚠️ ${filename} - JSON পার্সিং ত্রুটি: ${jsonErr.message}`, 'error');
-                            }
-                        } catch (err) {
-                            addLog(`❌ ${filename} পড়তে ব্যর্থ: ${err.message}`, 'error');
+                            // JSON ভ্যালিডিটি চেক
+                            JSON.parse(content);
+                            jsonItems.push({
+                                originalPath: filename,
+                                filename: filename.split('/').pop(),
+                                content: content,
+                                number: extractNumberFromFilename(filename)
+                            });
+                        } catch (jsonErr) {
+                            addLog(`⚠️ ${filename} - JSON পার্সিং ত্রুটি: ${jsonErr.message}`, 'error');
                         }
                     }
-                    processed++;
-                    // প্রোগ্রেস দেখানো (লোডিং স্টেপ)
-                    if (processed % 100 === 0 || processed === totalFiles) {
-                        // আপলোড প্রসেস প্রোগ্রেস আপডেট (প্রাথমিক)
-                    }
                 }
-                resolve(jsonFiles);
+                
+                // সংখ্যা অনুযায়ী সাজানো (1,2,3,4...)
+                jsonItems.sort((a, b) => {
+                    if (a.number === Infinity && b.number === Infinity) return a.filename.localeCompare(b.filename);
+                    if (a.number === Infinity) return 1;
+                    if (b.number === Infinity) return -1;
+                    return a.number - b.number;
+                });
+                
+                resolve(jsonItems);
             }).catch(err => {
                 reject(new Error(`জিপ পড়তে ব্যর্থ: ${err.message}`));
             });
         });
     }
 
-    // ফাইল লোড হওয়ার পর প্রাথমিক ইনফো ও প্রিভিউ দেখানো
+    // জিপ আপলোড হ্যান্ডলার
     async function handleZipUpload(file) {
         if (!file || (!file.type.includes('zip') && !file.name.endsWith('.zip'))) {
             alert("শুধুমাত্র .zip ফাইল আপলোড করুন।");
@@ -378,38 +405,40 @@
         fileInfoDiv.innerHTML = `<span style="color:#a5f7b0;">📦 জিপ ফাইল লোড হয়েছে: ${escapeHtml(file.name)} (${(file.size / 1024).toFixed(2)} KB)</span>`;
         addLog(`📁 জিপ ফাইল "${file.name}" লোড হয়েছে। JSON ফাইল বের করা হচ্ছে...`, 'success');
         
-        // JSON ফাইল বের করা
         try {
-            const jsonArray = await extractJsonFilesFromZip(file);
-            if (jsonArray.length === 0) {
+            const sortedItems = await extractAndSortJsonFiles(file);
+            
+            if (sortedItems.length === 0) {
                 addLog(`⚠️ জিপের ভিতরে কোনো বৈধ .json ফাইল পাওয়া যায়নি।`, 'error');
                 processorSection.style.display = 'none';
                 return false;
             }
-            extractedJsonFiles = jsonArray.map(item => ({
-                ...item,
-                newName: item.name.replace(/\.json$/i, '')   // এক্সটেনশন রিমুভ
-            }));
             
-            totalFilesBadge.innerText = `মোট JSON ফাইল: ${extractedJsonFiles.length}`;
-            updateProgress(0, extractedJsonFiles.length);
+            // শুধু কন্টেন্ট সংরক্ষণ করি (সংখ্যা অনুযায়ী সাজানো)
+            jsonContents = sortedItems.map(item => item.content);
+            originalFileNames = sortedItems.map(item => item.filename);
             
-            // প্রথম ফাইলের প্রিভিউ দেখানো
-            if (extractedJsonFiles.length > 0) {
-                const firstContent = extractedJsonFiles[0].content;
+            totalFilesBadge.innerText = `মোট JSON ফাইল: ${jsonContents.length}`;
+            updateProgress(0, jsonContents.length);
+            
+            // প্রথম ফাইলের প্রিভিউ
+            if (jsonContents.length > 0) {
                 try {
-                    const prettyJson = JSON.stringify(JSON.parse(firstContent), null, 2);
+                    const prettyJson = JSON.stringify(JSON.parse(jsonContents[0]), null, 2);
                     samplePreview.innerText = prettyJson.length > 800 ? prettyJson.substring(0, 800) + '...' : prettyJson;
                 } catch(e) {
-                    samplePreview.innerText = firstContent.substring(0, 400);
+                    samplePreview.innerText = jsonContents[0].substring(0, 400);
                 }
-                addLog(`✅ মোট ${extractedJsonFiles.length} টি JSON ফাইল সনাক্ত করা হয়েছে। (যেমন: ${extractedJsonFiles[0].name} → ${extractedJsonFiles[0].newName})`, 'success');
+                addLog(`✅ মোট ${jsonContents.length} টি JSON ফাইল সনাক্ত করা হয়েছে।`, 'success');
+                addLog(`📋 নাম পরিবর্তনের নিয়ম: ${originalFileNames[0]} → 1, ${originalFileNames[Math.min(2, originalFileNames.length-1)] || originalFileNames[0]} → ${Math.min(2, originalFileNames.length)} ইত্যাদি`, 'success');
             }
             
             processorSection.style.display = 'block';
             processBtn.disabled = false;
-            downloadZipBtn.disabled = true; // প্রক্রিয়াকরণ না হলে ডাউনলোড নিষ্ক্রিয়
+            downloadZipBtn.disabled = true;
+            processedZipBlob = null;
             return true;
+            
         } catch (err) {
             addLog(`❌ জিপ প্রসেসিং ব্যর্থ: ${err.message}`, 'error');
             processorSection.style.display = 'none';
@@ -417,9 +446,9 @@
         }
     }
 
-    // রিমুভ এক্সটেনশন ও নতুন জিপ তৈরি
-    async function buildNewZipWithoutExtension() {
-        if (!extractedJsonFiles || extractedJsonFiles.length === 0) {
+    // নতুন জিপ তৈরি (ফাইলের নাম 1,2,3... ফরম্যাটে)
+    async function createNewZipWithNumberNames() {
+        if (!jsonContents || jsonContents.length === 0) {
             addLog(`❌ প্রক্রিয়াকরণের জন্য কোনো JSON ফাইল নেই।`, 'error');
             return null;
         }
@@ -430,48 +459,43 @@
         
         const JSZipLib = window.JSZip;
         const newZip = new JSZipLib();
-        const total = extractedJsonFiles.length;
+        const total = jsonContents.length;
         let processedCount = 0;
         
-        // অগ্রগতি রিসেট
         updateProgress(0, total);
         clearLogs();
-        addLog(`🔄 নতুন জিপ তৈরি শুরু: ${total} টি ফাইলের এক্সটেনশন .json রিমুভ করা হবে...`, 'info');
-        
-        // সিমুলেট বা একে একে ফোল্ডার স্ট্রাকচার প্রিজার্ভ না করে সরাসরি রুটে ফাইল রাখা (সরলতা)
-        // আসল ফাইলের ডিরেক্টরি স্ট্রাকচার সংরক্ষণ করতে পারি, তবে বেশিরভাগ NFT ফোল্ডারে ফাইল root-এ থাকে।
-        // এডভান্স: relative path সংরক্ষণ করতে চাইলে path logic দরকার, কিন্তু বর্তমান requirement শুধু এক্সটেনশন রিমুভ।
-        // আমরা simple রাখছি: সব ফাইল main folder এ রাখব নতুন নামে। (যদি সাবফোল্ডার থাকে, তবে flat)
+        addLog(`🔄 নতুন জিপ তৈরি শুরু: ${total} টি ফাইল রিনেম করে 1 থেকে ${total} পর্যন্ত নাম দেওয়া হচ্ছে...`, 'info');
         
         for (let i = 0; i < total; i++) {
-            const item = extractedJsonFiles[i];
-            let newFileName = item.newName;
-            // নিরাপত্তা: যদি নেম খালি হয়ে যায় তাহলে "file_"+index
-            if (!newFileName || newFileName.trim() === "") {
-                newFileName = `file_${i+1}`;
-            }
-            // path যেকোনো স্ল্যাশ প্রতিস্থাপন বা প্যারেন্ট রিমুভ: কারণ ফ্ল্যাট রাখছি
-            const safeName = newFileName.replace(/^.*[\\/]/g, ''); // সাবফোল্ডার উপেক্ষা করে শুধু বেস নেম
+            const newFileName = `${i + 1}`;  // 1, 2, 3, 4 ... 10000
+            const content = jsonContents[i];
+            
             try {
-                // কন্টেন্ট ভ্যালিড JSON কিনা চেক করে (আগে থেকেই করা আছে, তবুও)
-                JSON.parse(item.content); // double-check
-                newZip.file(safeName, item.content);
+                // JSON ভ্যালিডিটি চেক (নিশ্চিত করার জন্য)
+                JSON.parse(content);
+                newZip.file(newFileName, content);
                 processedCount++;
-                if (processedCount % 500 === 0 || processedCount === total) {
+                
+                if (processedCount % 500 === 0 || processedCount === total || processedCount === 100 || processedCount === 1000) {
                     updateProgress(processedCount, total);
-                    addLog(`📄 ${processedCount}/${total}: "${item.name}" → "${safeName}"`, 'success');
+                    addLog(`📄 ${processedCount}/${total}: "${originalFileNames[i] || 'file'}" → "${newFileName}"`, 'success');
                 }
             } catch (jsonErr) {
-                addLog(`⚠️ "${item.name}" JSON অবৈধ, স্কিপ করা হয়েছে: ${jsonErr.message}`, 'error');
+                addLog(`⚠️ ফাইল #${i+1} JSON অবৈধ, স্কিপ করা হয়েছে: ${jsonErr.message}`, 'error');
             }
         }
         
         updateProgress(processedCount, total);
-        addLog(`✨ প্রক্রিয়াকরণ সম্পন্ন! ${processedCount} টি ফাইল সফলভাবে রিমুভ করা হয়েছে (`.json` বাদ).`, 'success');
+        addLog(`✨ প্রক্রিয়াকরণ সম্পন্ন! ${processedCount} টি ফাইল সফলভাবে রিনেম করা হয়েছে (`.json` বাদ).`, 'success');
+        addLog(`📛 নতুন নামের ফরম্যাট: 1, 2, 3 ... ${processedCount}`, 'success');
         
-        // ব্লব তৈরি
+        // জিপ ব্লব তৈরি
         try {
-            const blob = await newZip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
+            const blob = await newZip.generateAsync({ 
+                type: "blob", 
+                compression: "DEFLATE", 
+                compressionOptions: { level: 6 } 
+            });
             processedZipBlob = blob;
             addLog(`📦 নতুন জিপ তৈরি হয়েছে: সাইজ ${(blob.size / 1024).toFixed(2)} KB`, 'success');
             downloadZipBtn.disabled = false;
@@ -485,22 +509,43 @@
         }
     }
 
-    // ডাউনলোড ফাংশন
+    // ডাউনলোড ফাংশন (সেভ হিসাবে)
     function downloadProcessedZip() {
         if (!processedZipBlob) {
-            addLog(`❌ ডাউনলোডের জন্য কোনো প্রসেসড জিপ নেই। প্রথমে "এক্সটেনশন রিমুভ ও জিপ তৈরি" বাটনে ক্লিক করুন।`, 'error');
+            addLog(`❌ ডাউনলোডের জন্য কোনো প্রসেসড জিপ নেই। প্রথমে "এক্সটেনশন রিমুভ করুন" বাটনে ক্লিক করুন।`, 'error');
             return;
         }
-        const originalName = uploadedZipFile ? uploadedZipFile.name.replace(/\.zip$/i, '') : 'RoboSym_metadata';
-        const downloadName = `${originalName}_no_extension.zip`;
-        saveAs(processedZipBlob, downloadName);
-        addLog(`✅ ডাউনলোড শুরু হয়েছে: ${downloadName}`, 'success');
+        
+        try {
+            const originalName = uploadedZipFile ? uploadedZipFile.name.replace(/\.zip$/i, '') : 'RoboSym_metadata';
+            const downloadName = `${originalName}_renamed_1_to_${jsonContents.length}.zip`;
+            
+            // FileSaver.js এর saveAs ব্যবহার
+            if (typeof saveAs !== 'undefined') {
+                saveAs(processedZipBlob, downloadName);
+                addLog(`✅ ডাউনলোড শুরু হয়েছে: ${downloadName}`, 'success');
+            } else {
+                // ব্যাকআপ মেথড
+                const url = URL.createObjectURL(processedZipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = downloadName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                addLog(`✅ ডাউনলোড শুরু হয়েছে: ${downloadName}`, 'success');
+            }
+        } catch (err) {
+            addLog(`❌ ডাউনলোড করতে ব্যর্থ: ${err.message}`, 'error');
+        }
     }
 
-    // রিসেট ফাংশন (সবকিছু ক্লিয়ার)
+    // রিসেট ফাংশন
     function resetEverything() {
         uploadedZipFile = null;
-        extractedJsonFiles = [];
+        jsonContents = [];
+        originalFileNames = [];
         processedZipBlob = null;
         isProcessing = false;
         processorSection.style.display = 'none';
@@ -517,7 +562,7 @@
         downloadZipBtn.disabled = true;
     }
 
-    // হেল্পার: escape html
+    // HTML escape
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, function(m) {
@@ -557,14 +602,14 @@
     
     processBtn.addEventListener('click', async () => {
         if (isProcessing) {
-            addLog('⚠️ ইতিমধ্যে প্রক্রিয়াকরণ চলছে, একটু অপেক্ষা করুন...', 'error');
+            addLog('⚠️ ইতিমধ্যে প্রক্রিয়াকরণ চলছে, একটু অপেক্ষা করুন...', 'warning');
             return;
         }
-        if (!extractedJsonFiles || extractedJsonFiles.length === 0) {
+        if (!jsonContents || jsonContents.length === 0) {
             addLog('❌ কোনো JSON ফাইল পাওয়া যায়নি, পুনরায় জিপ আপলোড করুন।', 'error');
             return;
         }
-        await buildNewZipWithoutExtension();
+        await createNewZipWithNumberNames();
     });
     
     downloadZipBtn.addEventListener('click', () => {
@@ -575,7 +620,7 @@
         resetEverything();
     });
     
-    // শুরুতে রিসেট করা
+    // শুরুতে রিসেট
     resetEverything();
 </script>
 </body>
