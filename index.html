@@ -6,8 +6,6 @@
     <title>RoboSym NFT ব্যাচ JSON এডিটর - এক্সটেনশন রিমুভ ও জিপ প্রসেসর</title>
     <!-- JSZip লাইব্রেরি -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- FileSaver.js for saveAs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -315,10 +313,10 @@
 
     // গ্লোবাল ভেরিয়েবল
     let uploadedZipFile = null;
-    let jsonContents = [];           // শুধু JSON কন্টেন্ট স্ট্রিং array (সংখ্যা顺序 অনুযায়ী সাজানো)
+    let jsonContents = [];
     let processedZipBlob = null;
     let isProcessing = false;
-    let originalFileNames = [];      // আসল ফাইলের নাম (sorting এর জন্য)
+    let originalFileNames = [];
 
     // লগ অ্যাড করার ফাংশন
     function addLog(message, type = 'info') {
@@ -341,17 +339,15 @@
         processedBadge.innerText = `প্রক্রিয়াকৃত: ${current}/${total}`;
     }
 
-    // ফাইলের নাম থেকে সংখ্যা বের করার ফাংশন (sorting এর জন্য)
+    // ফাইলের নাম থেকে সংখ্যা বের করার ফাংশন
     function extractNumberFromFilename(filename) {
-        // শুধু ফাইলের নাম (ফোল্ডার পাথ বাদে)
         const baseName = filename.split('/').pop();
-        // .json বাদ দিয়ে সংখ্যা বের করার চেষ্টা
         const nameWithoutExt = baseName.replace(/\.json$/i, '');
         const num = parseInt(nameWithoutExt, 10);
         return isNaN(num) ? Infinity : num;
     }
 
-    // জিপ ফাইল থেকে JSON ফাইলগুলো বের করা এবং সংখ্যা অনুযায়ী সাজানো
+    // জিপ ফাইল থেকে JSON ফাইলগুলো বের করা
     async function extractAndSortJsonFiles(zipFile) {
         return new Promise((resolve, reject) => {
             const JSZipLib = window.JSZip;
@@ -365,7 +361,6 @@
                     if (!zipEntry.dir && filename.toLowerCase().endsWith('.json')) {
                         try {
                             const content = await zipEntry.async('string');
-                            // JSON ভ্যালিডিটি চেক
                             JSON.parse(content);
                             jsonItems.push({
                                 originalPath: filename,
@@ -379,7 +374,6 @@
                     }
                 }
                 
-                // সংখ্যা অনুযায়ী সাজানো (1,2,3,4...)
                 jsonItems.sort((a, b) => {
                     if (a.number === Infinity && b.number === Infinity) return a.filename.localeCompare(b.filename);
                     if (a.number === Infinity) return 1;
@@ -414,14 +408,12 @@
                 return false;
             }
             
-            // শুধু কন্টেন্ট সংরক্ষণ করি (সংখ্যা অনুযায়ী সাজানো)
             jsonContents = sortedItems.map(item => item.content);
             originalFileNames = sortedItems.map(item => item.filename);
             
             totalFilesBadge.innerText = `মোট JSON ফাইল: ${jsonContents.length}`;
             updateProgress(0, jsonContents.length);
             
-            // প্রথম ফাইলের প্রিভিউ
             if (jsonContents.length > 0) {
                 try {
                     const prettyJson = JSON.stringify(JSON.parse(jsonContents[0]), null, 2);
@@ -430,7 +422,7 @@
                     samplePreview.innerText = jsonContents[0].substring(0, 400);
                 }
                 addLog(`✅ মোট ${jsonContents.length} টি JSON ফাইল সনাক্ত করা হয়েছে।`, 'success');
-                addLog(`📋 নাম পরিবর্তনের নিয়ম: ${originalFileNames[0]} → 1, ${originalFileNames[Math.min(2, originalFileNames.length-1)] || originalFileNames[0]} → ${Math.min(2, originalFileNames.length)} ইত্যাদি`, 'success');
+                addLog(`📋 নাম পরিবর্তনের নিয়ম: 1, 2, 3 ... ${jsonContents.length}`, 'success');
             }
             
             processorSection.style.display = 'block';
@@ -446,7 +438,7 @@
         }
     }
 
-    // নতুন জিপ তৈরি (ফাইলের নাম 1,2,3... ফরম্যাটে)
+    // নতুন জিপ তৈরি
     async function createNewZipWithNumberNames() {
         if (!jsonContents || jsonContents.length === 0) {
             addLog(`❌ প্রক্রিয়াকরণের জন্য কোনো JSON ফাইল নেই।`, 'error');
@@ -467,29 +459,26 @@
         addLog(`🔄 নতুন জিপ তৈরি শুরু: ${total} টি ফাইল রিনেম করে 1 থেকে ${total} পর্যন্ত নাম দেওয়া হচ্ছে...`, 'info');
         
         for (let i = 0; i < total; i++) {
-            const newFileName = `${i + 1}`;  // 1, 2, 3, 4 ... 10000
+            const newFileName = `${i + 1}`;
             const content = jsonContents[i];
             
             try {
-                // JSON ভ্যালিডিটি চেক (নিশ্চিত করার জন্য)
                 JSON.parse(content);
                 newZip.file(newFileName, content);
                 processedCount++;
                 
-                if (processedCount % 500 === 0 || processedCount === total || processedCount === 100 || processedCount === 1000) {
+                if (processedCount % 500 === 0 || processedCount === total) {
                     updateProgress(processedCount, total);
-                    addLog(`📄 ${processedCount}/${total}: "${originalFileNames[i] || 'file'}" → "${newFileName}"`, 'success');
+                    addLog(`📄 ${processedCount}/${total} ফাইল প্রসেস করা হয়েছে`, 'success');
                 }
             } catch (jsonErr) {
-                addLog(`⚠️ ফাইল #${i+1} JSON অবৈধ, স্কিপ করা হয়েছে: ${jsonErr.message}`, 'error');
+                addLog(`⚠️ ফাইল #${i+1} JSON অবৈধ, স্কিপ করা হয়েছে`, 'error');
             }
         }
         
         updateProgress(processedCount, total);
-        addLog(`✨ প্রক্রিয়াকরণ সম্পন্ন! ${processedCount} টি ফাইল সফলভাবে রিনেম করা হয়েছে (`.json` বাদ).`, 'success');
-        addLog(`📛 নতুন নামের ফরম্যাট: 1, 2, 3 ... ${processedCount}`, 'success');
+        addLog(`✨ প্রক্রিয়াকরণ সম্পন্ন! ${processedCount} টি ফাইল রিনেম করা হয়েছে (1 থেকে ${processedCount})`, 'success');
         
-        // জিপ ব্লব তৈরি
         try {
             const blob = await newZip.generateAsync({ 
                 type: "blob", 
@@ -509,7 +498,7 @@
         }
     }
 
-    // ডাউনলোড ফাংশন (সেভ হিসাবে)
+    // ডাউনলোড ফাংশন - এখন নিশ্চিতভাবে কাজ করবে
     function downloadProcessedZip() {
         if (!processedZipBlob) {
             addLog(`❌ ডাউনলোডের জন্য কোনো প্রসেসড জিপ নেই। প্রথমে "এক্সটেনশন রিমুভ করুন" বাটনে ক্লিক করুন।`, 'error');
@@ -520,22 +509,18 @@
             const originalName = uploadedZipFile ? uploadedZipFile.name.replace(/\.zip$/i, '') : 'RoboSym_metadata';
             const downloadName = `${originalName}_renamed_1_to_${jsonContents.length}.zip`;
             
-            // FileSaver.js এর saveAs ব্যবহার
-            if (typeof saveAs !== 'undefined') {
-                saveAs(processedZipBlob, downloadName);
-                addLog(`✅ ডাউনলোড শুরু হয়েছে: ${downloadName}`, 'success');
-            } else {
-                // ব্যাকআপ মেথড
-                const url = URL.createObjectURL(processedZipBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = downloadName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                addLog(`✅ ডাউনলোড শুরু হয়েছে: ${downloadName}`, 'success');
-            }
+            // ম্যানুয়াল ডাউনলোড মেথড (সব ব্রাউজারে কাজ করে)
+            const url = window.URL.createObjectURL(processedZipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = downloadName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            addLog(`✅ ডাউনলোড শুরু হয়েছে: ${downloadName}`, 'success');
+            addLog(`📁 ফাইল নামের ফরম্যাট: 1, 2, 3 ... ${jsonContents.length} (এক্সটেনশন ছাড়া)`, 'success');
         } catch (err) {
             addLog(`❌ ডাউনলোড করতে ব্যর্থ: ${err.message}`, 'error');
         }
