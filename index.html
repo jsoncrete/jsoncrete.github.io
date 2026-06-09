@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>RoboSym NFT JSON এডিটর - ইমেজ নাম্বার পরিবর্তন করুন</title>
+    <title>RoboSym NFT ব্যাচ JSON এডিটর - এক্সটেনশন রিমুভ ও জিপ প্রসেসর</title>
+    <!-- JSZip লাইব্রেরি -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- FileSaver.js for saveAs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -20,7 +24,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -43,7 +47,7 @@
             font-size: 1rem;
             border-left: 3px solid #a855f7;
             padding-left: 1rem;
-            max-width: 650px;
+            max-width: 750px;
             margin: 0 auto;
         }
 
@@ -118,96 +122,86 @@
             filter: brightness(1.05);
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #cbd5e6;
-        }
-
-        input, .preview-box {
+        .progress-bar-container {
+            background: #1e293b;
+            border-radius: 2rem;
+            height: 28px;
             width: 100%;
-            padding: 0.8rem 1rem;
-            background: #0f172ad9;
-            border: 1px solid #334155;
-            border-radius: 1rem;
-            color: #f1f5f9;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
+            margin: 1rem 0;
+            overflow: hidden;
         }
 
-        input:focus {
-            outline: none;
-            border-color: #c084fc;
-            box-shadow: 0 0 0 2px #a855f740;
-        }
-
-        .number-input-group {
+        .progress-bar {
+            background: linear-gradient(90deg, #c084fc, #a855f7);
+            width: 0%;
+            height: 100%;
+            border-radius: 2rem;
+            transition: width 0.2s ease;
             display: flex;
-            gap: 12px;
             align-items: center;
-            flex-wrap: wrap;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
         }
 
-        .number-input-group input {
-            flex: 2;
-            min-width: 150px;
-        }
-
-        .link-preview {
-            background: #0a0f1c;
-            padding: 0.75rem;
+        .log-area {
+            background: #030617cc;
             border-radius: 1rem;
-            font-size: 0.8rem;
-            word-break: break-all;
-            font-family: monospace;
-            border-left: 4px solid #a855f7;
-            margin-top: 8px;
-        }
-
-        .attribute-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 0.8rem;
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
             margin-top: 1rem;
         }
 
-        .attr-card {
-            background: #0b1120cc;
-            padding: 0.6rem 1rem;
-            border-radius: 1rem;
-            display: flex;
-            justify-content: space-between;
-            border: 1px solid #2a3a55;
-        }
-
-        .attr-trait {
-            font-weight: 600;
+        .log-line {
+            border-bottom: 1px solid #2d3a5e;
+            padding: 0.3rem 0;
             color: #b9c7db;
         }
 
-        .attr-value {
-            font-weight: bold;
-            color: #f0a6ff;
+        .log-line.success {
+            color: #86efac;
         }
 
-        .json-view {
-            background: #030617;
-            padding: 1rem;
+        .log-line.error {
+            color: #f87171;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background: #0f172a;
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .json-preview {
+            background: #0a0f1c;
             border-radius: 1rem;
-            font-family: 'Fira Code', monospace;
+            padding: 0.8rem;
+            font-family: monospace;
             font-size: 0.7rem;
             overflow-x: auto;
             white-space: pre-wrap;
-            max-height: 250px;
-            border: 1px solid #2d3a60;
+            max-height: 180px;
         }
 
         .flex-between {
@@ -215,25 +209,7 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            margin-top: 1.2rem;
-        }
-
-        .alert {
-            background: #00b89420;
-            border-left: 4px solid #00e5a0;
-            padding: 0.9rem;
-            border-radius: 1rem;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-        }
-
-        .info-badge {
-            background: #1e293b;
-            padding: 0.3rem 0.8rem;
-            border-radius: 2rem;
-            font-size: 0.75rem;
-            font-family: monospace;
-            display: inline-block;
+            align-items: center;
         }
 
         footer {
@@ -242,310 +218,306 @@
             color: #4b556b;
             margin-top: 2rem;
         }
-
-        @media (max-width: 640px) {
-            .card {
-                padding: 1.2rem;
-            }
-            .header h1 {
-                font-size: 1.6rem;
-            }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>🤖 RoboSym JSON Editor</h1>
-        <p>JSON ফাইল আপলোড করুন → ইমেজ নাম্বার পরিবর্তন করুন (1 থেকে 10000 পর্যন্ত) → বাকি সব অ্যাট্রিবিউট অপরিবর্তিত রেখে ডাউনলোড করুন (US সময় অনুযায়ী)</p>
+        <h1>🗜️ RoboSym Batch JSON Processor</h1>
+        <p>📦 জিপ ফাইল আপলোড করুন (১০,০০০টি JSON) → প্রতিটি ফাইলের `.json` এক্সটেনশন সরিয়ে ফেলুন → জিপ আকারে ডাউনলোড করুন<br>
+        ⚡ সম্পূর্ণ প্রক্রিয়া ব্রাউজারেই সম্পন্ন হবে, কোনো সার্ভার প্রয়োজন নেই</p>
     </div>
 
     <!-- আপলোড সেকশন -->
     <div class="card">
         <div class="card-title">
-            📂 ১. JSON ফাইল আপলোড করুন
+            📂 ১. জিপ ফাইল আপলোড করুন (JSON মেটাডাটা সহ)
         </div>
         <div id="uploadZone" class="upload-area">
-            <div style="font-size: 2.5rem; margin-bottom: 8px;">📁</div>
+            <div style="font-size: 2.5rem; margin-bottom: 8px;">🗃️</div>
             <p>ক্লিক করুন অথবা ড্রাগ & ড্রপ করুন</p>
-            <p style="font-size: 0.7rem; opacity: 0.7;">শুধুমাত্র .json ফাইল</p>
-            <input type="file" id="fileInput" accept=".json" class="file-input">
+            <p style="font-size: 0.7rem; opacity: 0.7;">শুধুমাত্র .zip ফাইল (অভ্যন্তরে .json ফাইল থাকতে হবে)</p>
+            <input type="file" id="fileInput" accept=".zip" class="file-input">
         </div>
         <div id="fileInfo" style="margin-top: 15px; font-size: 0.85rem;"></div>
     </div>
 
-    <!-- এডিটর সেকশন (প্রথমে লুকানো) -->
-    <div id="editorSection" style="display: none;">
-        <!-- ইমেজ নাম্বার পরিবর্তন -->
+    <!-- প্রসেসিং ও ডাউনলোড সেকশন (প্রথমে লুকানো) -->
+    <div id="processorSection" style="display: none;">
         <div class="card">
             <div class="card-title">
-                🖼️ ২. ইমেজ নম্বর পরিবর্তন করুন
+                ⚙️ ২. এক্সটেনশন রিমুভ ও জিপ তৈরি
             </div>
-            <div class="form-group">
-                <label>বর্তমান ইমেজ লিংক</label>
-                <div id="currentImagePreview" class="link-preview">—</div>
+            <div class="stats">
+                <div class="badge" id="totalFilesBadge">মোট JSON ফাইল: ০</div>
+                <div class="badge" id="processedBadge">প্রক্রিয়াকৃত: ০</div>
             </div>
-            <div class="form-group">
-                <label>নতুন ইমেজ নম্বর (শুধু সংখ্যা)</label>
-                <div class="number-input-group">
-                    <input type="number" id="imageNumberInput" value="1" min="1" max="20000" step="1">
-                    <button id="applyNumberBtn" class="btn">🔄 লিংক আপডেট করুন</button>
-                </div>
-                <div class="info-badge" style="margin-top: 10px;">
-                    💡 উদাহরণ: 1.png → 2.png → 9999.png
-                </div>
-            </div>
-            <div class="form-group">
-                <label>নতুন জেনারেট হওয়া লিংক</label>
-                <div id="generatedLink" class="link-preview" style="background:#150e24; color:#c084fc;">
-                    https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/1.png
-                </div>
-            </div>
-        </div>
-
-        <!-- অ্যাট্রিবিউট ডিসপ্লে (শুধু দেখানো) -->
-        <div class="card">
-            <div class="card-title">
-                🧬 মেটাডেটা (অপরিবর্তিত থাকবে)
-            </div>
-            <div id="attributesDisplay" class="attribute-grid"></div>
-            <div style="margin-top: 1rem;">
-                <label>অন্যান্য তথ্য (name, description, id, palette)</label>
-                <div id="metaOverview" class="json-view"></div>
-            </div>
-        </div>
-
-        <!-- ডাউনলোড -->
-        <div class="card">
-            <div class="card-title">
-                💾 ৩. ডাউনলোড করুন
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar" style="width:0%">0%</div>
             </div>
             <div class="flex-between">
-                <button id="downloadBtn" class="btn">⬇️ JSON ডাউনলোড করুন</button>
-                <button id="resetBtn" class="btn btn-outline">🔄 নতুন ফাইল আপলোড করুন</button>
+                <button id="processBtn" class="btn" disabled>🚀 এক্সটেনশন রিমুভ ও জিপ তৈরি করুন</button>
+                <button id="downloadZipBtn" class="btn" disabled>💾 প্রসেসড জিপ ডাউনলোড করুন</button>
+                <button id="resetBtn" class="btn btn-outline">🔄 নতুন জিপ আপলোড করুন</button>
             </div>
-            <div id="downloadNote" class="alert">
-                ✅ 'created' ফিল্ডটি বর্তমান US সময় (America/New_York) অনুযায়ী আপডেট হবে।
+            <div id="previewArea" style="margin-top: 1rem;">
+                <details>
+                    <summary style="cursor:pointer; color:#c084fc;">📄 নমুনা JSON প্রিভিউ (প্রথম ফাইল)</summary>
+                    <div id="samplePreview" class="json-preview">—</div>
+                </details>
+            </div>
+            <div class="log-area" id="logArea">
+                <div class="log-line">⏳ অপেক্ষা করুন... জিপ আপলোড করুন</div>
             </div>
         </div>
     </div>
 
     <footer>
-        🔗 ইমেজ বেস লিংক: <strong>https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/</strong>{নম্বর}.png<br>
-        📝 ট্রেইট, পাওয়ার, ডিফেন্স, স্পীড, র্যারিটি ইত্যাদি পুরোপুরি অপরিবর্তিত থাকবে।
+        🔧 প্রতিটি .json ফাইল থেকে .json এক্সটেনশন সরিয়ে নতুন নাম দেওয়া হবে (যেমন: 1.json → 1)।<br>
+        📁 মেটাডাটার ভেতরের ছবির লিংক বা অন্য কোনো ডাটা পরিবর্তন হবে না, শুধু ফাইলের নাম পরিবর্তন করা হবে।<br>
+        ✅ সম্পূর্ণ প্রক্রিয়া লোকাল ব্রাউজারে (JSZip ব্যবহার করে) পরিচালিত হয়।
     </footer>
 </div>
 
 <script>
-    // ======================= গ্লোবাল ভেরিয়েবল =======================
-    let originalJsonData = null;      // আসল JSON অবজেক্ট
-    let workingJsonData = null;       // কাজের JSON (ইমেজ পরিবর্তন করে রাখব)
-
-    // ডম এলিমেন্ট
+    // DOM এলিমেন্ট
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('fileInput');
     const fileInfoDiv = document.getElementById('fileInfo');
-    const editorSection = document.getElementById('editorSection');
-    const currentImagePreview = document.getElementById('currentImagePreview');
-    const imageNumberInput = document.getElementById('imageNumberInput');
-    const applyNumberBtn = document.getElementById('applyNumberBtn');
-    const generatedLinkDiv = document.getElementById('generatedLink');
-    const attributesDisplay = document.getElementById('attributesDisplay');
-    const metaOverview = document.getElementById('metaOverview');
-    const downloadBtn = document.getElementById('downloadBtn');
+    const processorSection = document.getElementById('processorSection');
+    const processBtn = document.getElementById('processBtn');
+    const downloadZipBtn = document.getElementById('downloadZipBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const totalFilesBadge = document.getElementById('totalFilesBadge');
+    const processedBadge = document.getElementById('processedBadge');
+    const progressBar = document.getElementById('progressBar');
+    const logArea = document.getElementById('logArea');
+    const samplePreview = document.getElementById('samplePreview');
 
-    // ======================= ইউটিলিটি ফাংশন =======================
-    // নির্দিষ্ট ইমেজ লিংক তৈরির ফাংশন (শুধু সংখ্যা দিলেই পুরো লিংক)
-    function buildImageUrlByNumber(number) {
-        return `https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/${number}.png`;
+    // গ্লোবাল ভেরিয়েবল
+    let uploadedZipFile = null;           // আসল ফাইল ব্লব
+    let extractedJsonFiles = [];           // { name: "1.json", content: string, newName: "1" }
+    let processedZipBlob = null;           // প্রসেস করা জিপ ব্লব
+    let isProcessing = false;
+
+    // লগ অ্যাড করার ফাংশন
+    function addLog(message, type = 'info') {
+        const logDiv = document.createElement('div');
+        logDiv.className = `log-line ${type === 'success' ? 'success' : (type === 'error' ? 'error' : '')}`;
+        logDiv.innerHTML = message;
+        logArea.appendChild(logDiv);
+        logDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // লিংক থেকে সংখ্যা বের করা (যেমন শেষে /123.png থেকে 123)
-    function extractNumberFromUrl(url) {
-        if (!url) return 1;
-        const match = url.match(/\/(\d+)\.png$/);
-        if (match && match[1]) {
-            return parseInt(match[1], 10);
+    function clearLogs() {
+        logArea.innerHTML = '';
+    }
+
+    // প্রোগ্রেস আপডেট
+    function updateProgress(current, total) {
+        const percent = total === 0 ? 0 : Math.round((current / total) * 100);
+        progressBar.style.width = `${percent}%`;
+        progressBar.innerText = `${percent}%`;
+        processedBadge.innerText = `প্রক্রিয়াকৃত: ${current}/${total}`;
+    }
+
+    // জিপ ফাইল থেকে JSON ফাইলগুলো বের করা (শুধুমাত্র .json এক্সটেনশন)
+    async function extractJsonFilesFromZip(zipFile) {
+        return new Promise((resolve, reject) => {
+            const JSZipLib = window.JSZip;
+            const zip = new JSZipLib();
+            zip.loadAsync(zipFile).then(async (zipData) => {
+                const jsonFiles = [];
+                const allFiles = Object.keys(zipData.files);
+                const totalFiles = allFiles.length;
+                let processed = 0;
+
+                for (const filename of allFiles) {
+                    const zipEntry = zipData.files[filename];
+                    // ফোল্ডার স্কিপ, শুধু .json ফাইল নিবো
+                    if (!zipEntry.dir && filename.toLowerCase().endsWith('.json')) {
+                        try {
+                            const content = await zipEntry.async('string');
+                            // JSON ভ্যালিডিটি চেক (নরম চেক)
+                            try {
+                                JSON.parse(content);
+                                jsonFiles.push({
+                                    originalPath: filename,
+                                    name: filename.split('/').pop(), // শুধু ফাইলের নাম
+                                    content: content,
+                                });
+                            } catch (jsonErr) {
+                                addLog(`⚠️ ${filename} - JSON পার্সিং ত্রুটি: ${jsonErr.message}`, 'error');
+                            }
+                        } catch (err) {
+                            addLog(`❌ ${filename} পড়তে ব্যর্থ: ${err.message}`, 'error');
+                        }
+                    }
+                    processed++;
+                    // প্রোগ্রেস দেখানো (লোডিং স্টেপ)
+                    if (processed % 100 === 0 || processed === totalFiles) {
+                        // আপলোড প্রসেস প্রোগ্রেস আপডেট (প্রাথমিক)
+                    }
+                }
+                resolve(jsonFiles);
+            }).catch(err => {
+                reject(new Error(`জিপ পড়তে ব্যর্থ: ${err.message}`));
+            });
+        });
+    }
+
+    // ফাইল লোড হওয়ার পর প্রাথমিক ইনফো ও প্রিভিউ দেখানো
+    async function handleZipUpload(file) {
+        if (!file || (!file.type.includes('zip') && !file.name.endsWith('.zip'))) {
+            alert("শুধুমাত্র .zip ফাইল আপলোড করুন।");
+            return false;
         }
-        return 1;
-    }
 
-    // বর্তমান US সময় (America/New_York) আইএসও ফরম্যাটে তৈরি করা (অফসেটসহ)
-    function getCurrentUSTimeISO() {
+        uploadedZipFile = file;
+        fileInfoDiv.innerHTML = `<span style="color:#a5f7b0;">📦 জিপ ফাইল লোড হয়েছে: ${escapeHtml(file.name)} (${(file.size / 1024).toFixed(2)} KB)</span>`;
+        addLog(`📁 জিপ ফাইল "${file.name}" লোড হয়েছে। JSON ফাইল বের করা হচ্ছে...`, 'success');
+        
+        // JSON ফাইল বের করা
         try {
-            const now = new Date();
-            // আমেরিকান ইস্টার্ন টাইমে তারিখ ও সময় বের করা
-            const formatter = new Intl.DateTimeFormat('en-CA', {
-                timeZone: 'America/New_York',
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
-            const parts = formatter.formatToParts(now);
-            const dateTimeMap = {};
-            parts.forEach(part => {
-                if (part.type !== 'literal') dateTimeMap[part.type] = part.value;
-            });
-            const year = dateTimeMap.year;
-            const month = dateTimeMap.month;
-            const day = dateTimeMap.day;
-            const hour = dateTimeMap.hour;
-            const minute = dateTimeMap.minute;
-            const second = dateTimeMap.second;
-            
-            // টাইমজোন অফসেট বের করা (America/New_York)
-            const usDate = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
-            const offsetMinutes = -usDate.getTimezoneOffset(); // America/New_York গ্রীষ্মে -240, শীতে -300 -> offset -4 বা -5
-            const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-            const absOffset = Math.abs(offsetMinutes);
-            const offsetHour = String(Math.floor(absOffset / 60)).padStart(2, '0');
-            const offsetMin = String(absOffset % 60).padStart(2, '0');
-            const offsetStr = `${offsetSign}${offsetHour}:${offsetMin}`;
-            
-            return `${year}-${month}-${day}T${hour}:${minute}:${second}${offsetStr}`;
-        } catch (e) {
-            console.warn("US timezone error, fallback to UTC", e);
-            return new Date().toISOString();
-        }
-    }
-
-    // JSON অবজেক্টে ইমেজ আপডেট করা
-    function updateImageInJson(number) {
-        if (!workingJsonData) return false;
-        const newUrl = buildImageUrlByNumber(number);
-        workingJsonData.image = newUrl;
-        return true;
-    }
-
-    // সম্পূর্ণ UI রিফ্রেশ করা (বর্তমান workingJsonData দেখানো)
-    function refreshUI() {
-        if (!workingJsonData) return;
-        
-        // 1. ইমেজ প্রিভিউ
-        const currentImg = workingJsonData.image || "";
-        currentImagePreview.innerText = currentImg;
-        const currentNum = extractNumberFromUrl(currentImg);
-        imageNumberInput.value = currentNum;
-        const previewUrl = buildImageUrlByNumber(currentNum);
-        generatedLinkDiv.innerText = previewUrl;
-        
-        // 2. অ্যাট্রিবিউট দেখানো
-        if (workingJsonData.attributes && Array.isArray(workingJsonData.attributes)) {
-            attributesDisplay.innerHTML = "";
-            workingJsonData.attributes.forEach(attr => {
-                const div = document.createElement('div');
-                div.className = "attr-card";
-                const traitName = attr.trait_type || "Trait";
-                const traitVal = attr.value ?? "—";
-                div.innerHTML = `<span class="attr-trait">${escapeHtml(String(traitName))}</span><span class="attr-value">${escapeHtml(String(traitVal))}</span>`;
-                attributesDisplay.appendChild(div);
-            });
-        } else {
-            attributesDisplay.innerHTML = "<div class='attr-card'>কোন অ্যাট্রিবিউট পাওয়া যায়নি</div>";
-        }
-        
-        // 3. অন্যান্য মেটাডেটা (image বাদে)
-        const metaCopy = { ...workingJsonData };
-        delete metaCopy.attributes;
-        delete metaCopy.image;
-        metaOverview.innerText = JSON.stringify(metaCopy, null, 2);
-    }
-
-    // নাম্বার পরিবর্তন করে অ্যাপ্লাই করা
-    function applyNumberChange() {
-        if (!workingJsonData) {
-            alert("কোন JSON ফাইল লোড করা হয়নি!");
-            return;
-        }
-        let newNumber = parseInt(imageNumberInput.value, 10);
-        if (isNaN(newNumber) || newNumber < 1) newNumber = 1;
-        updateImageInJson(newNumber);
-        refreshUI();
-    }
-
-    // JSON ফাইল প্রসেসিং
-    function processJsonFile(fileContent, fileName) {
-        try {
-            const parsed = JSON.parse(fileContent);
-            // বেসিক ভ্যালিডেশন: image ফিল্ড থাকতে হবে
-            if (!parsed.hasOwnProperty('image')) {
-                throw new Error("JSON ফাইলে 'image' কী নেই। সঠিক ফাইল দিন।");
+            const jsonArray = await extractJsonFilesFromZip(file);
+            if (jsonArray.length === 0) {
+                addLog(`⚠️ জিপের ভিতরে কোনো বৈধ .json ফাইল পাওয়া যায়নি।`, 'error');
+                processorSection.style.display = 'none';
+                return false;
             }
-            // গভীর কপি তৈরি
-            originalJsonData = JSON.parse(JSON.stringify(parsed));
-            workingJsonData = JSON.parse(JSON.stringify(parsed));
+            extractedJsonFiles = jsonArray.map(item => ({
+                ...item,
+                newName: item.name.replace(/\.json$/i, '')   // এক্সটেনশন রিমুভ
+            }));
             
-            // ইমেজ URL যদি আমাদের বেস প্যাটার্নের না হয়, তবুও নাম্বার বের করার চেষ্টা করবে
-            refreshUI();
-            fileInfoDiv.innerHTML = `<span style="color:#a5f7b0;">✅ সফলভাবে লোড হয়েছে: ${escapeHtml(fileName)}</span>`;
-            editorSection.style.display = "block";
-            editorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            totalFilesBadge.innerText = `মোট JSON ফাইল: ${extractedJsonFiles.length}`;
+            updateProgress(0, extractedJsonFiles.length);
+            
+            // প্রথম ফাইলের প্রিভিউ দেখানো
+            if (extractedJsonFiles.length > 0) {
+                const firstContent = extractedJsonFiles[0].content;
+                try {
+                    const prettyJson = JSON.stringify(JSON.parse(firstContent), null, 2);
+                    samplePreview.innerText = prettyJson.length > 800 ? prettyJson.substring(0, 800) + '...' : prettyJson;
+                } catch(e) {
+                    samplePreview.innerText = firstContent.substring(0, 400);
+                }
+                addLog(`✅ মোট ${extractedJsonFiles.length} টি JSON ফাইল সনাক্ত করা হয়েছে। (যেমন: ${extractedJsonFiles[0].name} → ${extractedJsonFiles[0].newName})`, 'success');
+            }
+            
+            processorSection.style.display = 'block';
+            processBtn.disabled = false;
+            downloadZipBtn.disabled = true; // প্রক্রিয়াকরণ না হলে ডাউনলোড নিষ্ক্রিয়
+            return true;
         } catch (err) {
-            alert("JSON পার্সিং ব্যর্থ হয়েছে: " + err.message);
-            fileInfoDiv.innerHTML = `<span style="color:#ff9e8f;">❌ ত্রুটি: ${err.message}</span>`;
-            editorSection.style.display = "none";
-            workingJsonData = null;
+            addLog(`❌ জিপ প্রসেসিং ব্যর্থ: ${err.message}`, 'error');
+            processorSection.style.display = 'none';
+            return false;
         }
     }
 
-    // ডাউনলোড ফাংশন - US সময় আপডেট করে
-    function downloadFinalJson() {
-        if (!workingJsonData) {
-            alert("কোন JSON ডেটা নেই। প্রথমে ফাইল আপলোড করুন।");
-            return;
+    // রিমুভ এক্সটেনশন ও নতুন জিপ তৈরি
+    async function buildNewZipWithoutExtension() {
+        if (!extractedJsonFiles || extractedJsonFiles.length === 0) {
+            addLog(`❌ প্রক্রিয়াকরণের জন্য কোনো JSON ফাইল নেই।`, 'error');
+            return null;
         }
         
-        // কাজের JSON এর কপি তৈরি
-        const outputJson = JSON.parse(JSON.stringify(workingJsonData));
+        isProcessing = true;
+        processBtn.disabled = true;
+        downloadZipBtn.disabled = true;
         
-        // created ফিল্ড আপডেট (US সময়)
-        const usTime = getCurrentUSTimeISO();
-        outputJson.created = usTime;
+        const JSZipLib = window.JSZip;
+        const newZip = new JSZipLib();
+        const total = extractedJsonFiles.length;
+        let processedCount = 0;
         
-        // JSON স্ট্রিং তৈরি
-        const jsonString = JSON.stringify(outputJson, null, 2);
-        const blob = new Blob([jsonString], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        // ফাইলের নাম (পুরাতন নামের সাথে _updated বা ডিফল্ট)
-        a.download = "RoboSym_updated.json";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // অগ্রগতি রিসেট
+        updateProgress(0, total);
+        clearLogs();
+        addLog(`🔄 নতুন জিপ তৈরি শুরু: ${total} টি ফাইলের এক্সটেনশন .json রিমুভ করা হবে...`, 'info');
         
-        // নোটিশ দেখানো
-        const noteDiv = document.getElementById('downloadNote');
-        if (noteDiv) {
-            noteDiv.innerHTML = `✅ ডাউনলোড সম্পন্ন! <br> 🕒 created (US সময়): ${usTime} <br> 🖼️ ইমেজ লিংক: ${outputJson.image}`;
-            setTimeout(() => {
-                if (noteDiv) noteDiv.innerHTML = `✅ 'created' ফিল্ডটি বর্তমান US সময় (America/New_York) অনুযায়ী আপডেট হবে।`;
-            }, 5000);
+        // সিমুলেট বা একে একে ফোল্ডার স্ট্রাকচার প্রিজার্ভ না করে সরাসরি রুটে ফাইল রাখা (সরলতা)
+        // আসল ফাইলের ডিরেক্টরি স্ট্রাকচার সংরক্ষণ করতে পারি, তবে বেশিরভাগ NFT ফোল্ডারে ফাইল root-এ থাকে।
+        // এডভান্স: relative path সংরক্ষণ করতে চাইলে path logic দরকার, কিন্তু বর্তমান requirement শুধু এক্সটেনশন রিমুভ।
+        // আমরা simple রাখছি: সব ফাইল main folder এ রাখব নতুন নামে। (যদি সাবফোল্ডার থাকে, তবে flat)
+        
+        for (let i = 0; i < total; i++) {
+            const item = extractedJsonFiles[i];
+            let newFileName = item.newName;
+            // নিরাপত্তা: যদি নেম খালি হয়ে যায় তাহলে "file_"+index
+            if (!newFileName || newFileName.trim() === "") {
+                newFileName = `file_${i+1}`;
+            }
+            // path যেকোনো স্ল্যাশ প্রতিস্থাপন বা প্যারেন্ট রিমুভ: কারণ ফ্ল্যাট রাখছি
+            const safeName = newFileName.replace(/^.*[\\/]/g, ''); // সাবফোল্ডার উপেক্ষা করে শুধু বেস নেম
+            try {
+                // কন্টেন্ট ভ্যালিড JSON কিনা চেক করে (আগে থেকেই করা আছে, তবুও)
+                JSON.parse(item.content); // double-check
+                newZip.file(safeName, item.content);
+                processedCount++;
+                if (processedCount % 500 === 0 || processedCount === total) {
+                    updateProgress(processedCount, total);
+                    addLog(`📄 ${processedCount}/${total}: "${item.name}" → "${safeName}"`, 'success');
+                }
+            } catch (jsonErr) {
+                addLog(`⚠️ "${item.name}" JSON অবৈধ, স্কিপ করা হয়েছে: ${jsonErr.message}`, 'error');
+            }
+        }
+        
+        updateProgress(processedCount, total);
+        addLog(`✨ প্রক্রিয়াকরণ সম্পন্ন! ${processedCount} টি ফাইল সফলভাবে রিমুভ করা হয়েছে (`.json` বাদ).`, 'success');
+        
+        // ব্লব তৈরি
+        try {
+            const blob = await newZip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
+            processedZipBlob = blob;
+            addLog(`📦 নতুন জিপ তৈরি হয়েছে: সাইজ ${(blob.size / 1024).toFixed(2)} KB`, 'success');
+            downloadZipBtn.disabled = false;
+            return blob;
+        } catch (genErr) {
+            addLog(`❌ জিপ জেনারেট করতে ব্যর্থ: ${genErr.message}`, 'error');
+            return null;
+        } finally {
+            isProcessing = false;
+            processBtn.disabled = false;
         }
     }
-    
-    // রিসেট ফাংশন (ফাইল ক্লিয়ার)
-    function resetEditor() {
-        originalJsonData = null;
-        workingJsonData = null;
-        editorSection.style.display = "none";
+
+    // ডাউনলোড ফাংশন
+    function downloadProcessedZip() {
+        if (!processedZipBlob) {
+            addLog(`❌ ডাউনলোডের জন্য কোনো প্রসেসড জিপ নেই। প্রথমে "এক্সটেনশন রিমুভ ও জিপ তৈরি" বাটনে ক্লিক করুন।`, 'error');
+            return;
+        }
+        const originalName = uploadedZipFile ? uploadedZipFile.name.replace(/\.zip$/i, '') : 'RoboSym_metadata';
+        const downloadName = `${originalName}_no_extension.zip`;
+        saveAs(processedZipBlob, downloadName);
+        addLog(`✅ ডাউনলোড শুরু হয়েছে: ${downloadName}`, 'success');
+    }
+
+    // রিসেট ফাংশন (সবকিছু ক্লিয়ার)
+    function resetEverything() {
+        uploadedZipFile = null;
+        extractedJsonFiles = [];
+        processedZipBlob = null;
+        isProcessing = false;
+        processorSection.style.display = 'none';
         fileInput.value = '';
         fileInfoDiv.innerHTML = '';
-        imageNumberInput.value = '1';
-        generatedLinkDiv.innerText = 'https://raw.githubusercontent.com/robosym/roborym.github.io/main/Sympng/1.png';
-        currentImagePreview.innerText = '—';
-        attributesDisplay.innerHTML = '';
-        metaOverview.innerText = '';
+        totalFilesBadge.innerText = 'মোট JSON ফাইল: ০';
+        processedBadge.innerText = 'প্রক্রিয়াকৃত: ০';
+        progressBar.style.width = '0%';
+        progressBar.innerText = '0%';
+        samplePreview.innerText = '—';
+        clearLogs();
+        addLog('🔄 রিসেট করা হয়েছে। নতুন জিপ আপলোড করুন।', 'info');
+        processBtn.disabled = true;
+        downloadZipBtn.disabled = true;
     }
-    
-    // HTML escaping
+
+    // হেল্পার: escape html
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, function(m) {
@@ -555,24 +527,8 @@
             return m;
         });
     }
-    
-    // ফাইল হ্যান্ডেল করা (FileReader)
-    function handleFileSelected(file) {
-        if (!file || (!file.type.includes('json') && !file.name.endsWith('.json'))) {
-            alert("শুধুমাত্র .json ফাইল আপলোড করুন।");
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            processJsonFile(e.target.result, file.name);
-        };
-        reader.onerror = () => {
-            alert("ফাইল পড়ার সময় ত্রুটি ঘটেছে!");
-        };
-        reader.readAsText(file, "UTF-8");
-    }
-    
-    // ======================= ইভেন্ট লিসেনার =======================
+
+    // ইভেন্ট লিসেনার
     uploadZone.addEventListener('click', () => fileInput.click());
     uploadZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -583,31 +539,44 @@
         uploadZone.style.borderColor = "#6b21a5";
         uploadZone.style.background = "rgba(0,0,0,0.3)";
     });
-    uploadZone.addEventListener('drop', (e) => {
+    uploadZone.addEventListener('drop', async (e) => {
         e.preventDefault();
         uploadZone.style.borderColor = "#6b21a5";
         uploadZone.style.background = "rgba(0,0,0,0.3)";
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-            handleFileSelected(files[0]);
+            await handleZipUpload(files[0]);
         }
     });
     
-    fileInput.addEventListener('change', (e) => {
+    fileInput.addEventListener('change', async (e) => {
         if (e.target.files.length > 0) {
-            handleFileSelected(e.target.files[0]);
+            await handleZipUpload(e.target.files[0]);
         }
     });
     
-    applyNumberBtn.addEventListener('click', applyNumberChange);
-    imageNumberInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') applyNumberChange();
+    processBtn.addEventListener('click', async () => {
+        if (isProcessing) {
+            addLog('⚠️ ইতিমধ্যে প্রক্রিয়াকরণ চলছে, একটু অপেক্ষা করুন...', 'error');
+            return;
+        }
+        if (!extractedJsonFiles || extractedJsonFiles.length === 0) {
+            addLog('❌ কোনো JSON ফাইল পাওয়া যায়নি, পুনরায় জিপ আপলোড করুন।', 'error');
+            return;
+        }
+        await buildNewZipWithoutExtension();
     });
-    downloadBtn.addEventListener('click', downloadFinalJson);
-    resetBtn.addEventListener('click', resetEditor);
     
-    // শুরুতে রিসেট অবস্থা
-    resetEditor();
+    downloadZipBtn.addEventListener('click', () => {
+        downloadProcessedZip();
+    });
+    
+    resetBtn.addEventListener('click', () => {
+        resetEverything();
+    });
+    
+    // শুরুতে রিসেট করা
+    resetEverything();
 </script>
 </body>
 </html>
