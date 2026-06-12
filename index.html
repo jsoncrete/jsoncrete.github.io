@@ -21,7 +21,6 @@
     .win95-btn { background: #c0c0c0; border: 3px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; padding: 6px 12px; font-family: 'Press Start 2P', monospace; font-size: 9px; cursor: pointer; }
     .win95-btn:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; transform: translate(1px, 1px); }
     .win95-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .win95-input { background: #ffffff; border: 2px inset #808080; padding: 8px 12px; font-family: 'VT323', monospace; font-size: 14px; width: 100%; outline: none; }
     .create-btn { background: #00aa00; border: 4px solid; border-top-color: #00ff00; border-left-color: #00ff00; border-right-color: #005500; border-bottom-color: #005500; padding: 10px 20px; font-family: 'Press Start 2P', monospace; font-size: 12px; cursor: pointer; color: #ffffff; width: auto; letter-spacing: 1px; display: inline-block; }
     .create-btn:active { border-top-color: #005500; border-left-color: #005500; border-right-color: #00ff00; border-bottom-color: #00ff00; transform: translate(2px, 2px); }
     .create-btn:disabled { background: #555; opacity: 0.6; cursor: not-allowed; }
@@ -35,7 +34,8 @@
     .layer-row { background: #d4d0c8; border: 2px outset #808080; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     .move-btn { background: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; padding: 5px 10px; cursor: pointer; font-family: monospace; font-size: 14px; margin-left: 5px; }
     .move-btn:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; }
-    .match-badge { background: #000080; color: #ffff00; border: 2px solid; border-top-color: #4444ff; border-left-color: #4444ff; border-right-color: #000044; border-bottom-color: #000044; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-top: 12px; display: block; text-align: center; line-height: 1.6; }
+    .match-badge { background: #000080; color: #ffff00; border: 2px solid; border-top-color: #4444ff; border-left-color: #4444ff; border-right-color: #000044; border-bottom-color: #000044; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-top: 12px; display: block; text-align: center; line-height: 1.6; cursor: pointer; }
+    .match-badge:hover { background: #0000aa; }
     .match-badge-loading { background: #404040; color: #00ff00; border: 2px inset #808080; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-top: 12px; text-align: center; animation: blink 1s step-start infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
     .success-bg { background: #006400 !important; }
@@ -48,6 +48,10 @@
     .share-btn:active { border-top-color: #0e6ea5; border-left-color: #0e6ea5; border-right-color: #6ec8ff; border-bottom-color: #6ec8ff; transform: translate(2px, 2px); }
     .x-post-banner-btn { background: #000000; border: 3px solid; border-top-color: #444444; border-left-color: #444444; border-right-color: #222222; border-bottom-color: #222222; padding: 12px 24px; font-family: 'Press Start 2P', monospace; font-size: 10px; cursor: pointer; color: #fff; width: 100%; margin-top: 10px; }
     .x-post-banner-btn:active { border-top-color: #222222; border-left-color: #222222; border-right-color: #444444; border-bottom-color: #444444; transform: translate(2px, 2px); }
+    .match-link { color: #00ff00; text-decoration: underline; cursor: pointer; }
+    .match-link:hover { color: #ffff00; }
+    .punk-id { cursor: pointer; color: #00ff00; text-decoration: underline; }
+    .punk-id:hover { color: #ffff00; }
   </style>
 </head>
 <body>
@@ -84,14 +88,14 @@
             <div class="section-title" style="margin-bottom: 10px;">🔷 ATTRIBUTES</div>
             <div id="attributes-list" style="background:#fff; border:2px inset #808080; padding:10px; margin-bottom: 12px; max-height: 200px; overflow-y: auto;"></div>
             
-            <!-- MATCH RESULT -->
+            <!-- MATCH RESULT - CLICKABLE -->
             <div id="match-container"></div>
             
             <!-- BANNER DOWNLOAD BUTTON -->
-            <button id="download-banner-btn" onclick="App.downloadBanner()" class="download-banner-btn">X POST BANNER</button>
+            <button id="download-banner-btn" onclick="App.downloadBanner()" class="download-banner-btn">📺 DOWNLOAD YOUTUBE BANNER (2560x1440)</button>
             
             <!-- X POST WITH BANNER BUTTON -->
-            <button id="x-post-banner-btn" onclick="App.shareBannerToX()" class="x-post-banner-btn">X POST WITH BANNER</button>
+            <button id="x-post-banner-btn" onclick="App.shareBannerToX()" class="x-post-banner-btn">🐦 X POST WITH BANNER</button>
             
             <!-- EDIT BUTTON -->
             <div style="margin-top: 10px;">
@@ -142,6 +146,19 @@
       
       <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button onclick="App.closeEditor()" class="win95-btn" style="flex:1;">CLOSE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MATCH DETAILS POPUP MODAL (Windows 95 style) -->
+<div id="match-popup" class="modal" style="display:none;">
+  <div class="modal-content win95-window" style="max-width: 500px;">
+    <div class="win95-titlebar"><span>🎯 MATCH DETAILS</span><button onclick="document.getElementById('match-popup').style.display='none'">✕</button></div>
+    <div class="win95-content">
+      <div id="match-popup-content" style="font-family:'Press Start 2P',monospace; font-size:9px;"></div>
+      <div style="margin-top: 15px; text-align: center;">
+        <button onclick="document.getElementById('match-popup').style.display='none'" class="win95-btn">OK</button>
       </div>
     </div>
   </div>
@@ -261,6 +278,37 @@ function findMatchesForNFT(nft) {
   return matched;
 }
 
+function showMatchPopup(matches) {
+  const popup = document.getElementById('match-popup');
+  const content = document.getElementById('match-popup-content');
+  
+  if (!matches.length) {
+    content.innerHTML = '<div style="text-align:center; padding:20px;">❌ No matching CryptoPunks found</div>';
+  } else {
+    const punkIds = matches.map(id => id);
+    const punkLinks = punkIds.map(id => 
+      `<div style="margin: 8px 0;">
+         <a href="https://www.cryptopunks.app/cryptopunks/details/${id}" target="_blank" style="color:#00ff00; text-decoration:underline; font-family:'Press Start 2P',monospace; font-size:9px;">🔗 CryptoPunk #${id}</a>
+       </div>`
+    ).join('');
+    
+    content.innerHTML = `
+      <div style="margin-bottom: 15px; text-align:center; color:#ffff00;">
+        🎯 ${matches.length} identical token${matches.length > 1 ? 's' : ''} found in CryptoPunks!
+      </div>
+      <div style="background:#000080; border:2px inset #808080; padding:12px; margin-bottom:10px;">
+        <div style="color:#ccccff; font-size:8px; margin-bottom:8px;">MATCHING CRYPTOPUNK IDS:</div>
+        ${punkLinks}
+      </div>
+      <div style="font-size:7px; color:#aaaaff; text-align:center; margin-top:10px;">
+        These 404 PUNKS share the exact same traits as the CryptoPunks above.
+      </div>
+    `;
+  }
+  
+  popup.style.display = 'flex';
+}
+
 function updateMatchDisplay() {
   const container = document.getElementById('match-container');
   if (!container || !currentNFT) return;
@@ -270,11 +318,14 @@ function updateMatchDisplay() {
   }
   const matches = findMatchesForNFT(currentNFT);
   if (!matches.length) {
-    container.innerHTML = '<div class="match-badge" style="background:#404040; color:#cccccc;">❌ NO MATCH FOUND IN CRYPTO PUNKS</div>';
+    container.innerHTML = '<div class="match-badge" style="background:#404040; color:#cccccc; cursor:default;">❌ NO MATCH FOUND IN CRYPTO PUNKS</div>';
   } else {
-    const show = matches.slice(0,12).map(n=>'#'+n).join(', ');
-    const extra = matches.length > 12 ? ` +${matches.length-12}` : '';
-    container.innerHTML = `<div class="match-badge success-bg">🎯 MATCH FOUND! (${matches.length} identical)<br><span style="font-size:7px;">${show}${extra}</span></div>`;
+    const showIds = matches.slice(0, 5).map(n => '#' + n).join(', ');
+    const extra = matches.length > 5 ? ` +${matches.length-5}` : '';
+    container.innerHTML = `<div class="match-badge success-bg" onclick="App.showMatchPopup(${JSON.stringify(matches).replace(/"/g, '&quot;')})">
+      🎯 MATCH FOUND! (${matches.length} identical)<br>
+      <span style="font-size:7px;">${showIds}${extra} - CLICK FOR DETAILS</span>
+    </div>`;
   }
 }
 
@@ -432,23 +483,19 @@ async function generateBanner() {
     const attr = attrs[i];
     const y = currentY + (i * (boxHeight + spacing));
     
-    // Skip if outside canvas
     if (y + boxHeight > height - 150) break;
     
-    // Attribute box - taller and wider
     ctx.fillStyle = '#000080';
     ctx.fillRect(rightX, y, boxWidth, boxHeight);
     ctx.strokeStyle = '#4444ff';
     ctx.strokeRect(rightX, y, boxWidth, boxHeight);
     
-    // Trait type (left side - yellow)
     ctx.fillStyle = '#ffff00';
     ctx.font = 'bold 16px "Press Start 2P"';
     let typeText = attr.trait_type;
     if (typeText.length > 12) typeText = typeText.substring(0, 10) + '..';
     ctx.fillText(typeText, rightX + 15, y + 33);
     
-    // Trait value (right side - green) - dynamically fit
     ctx.fillStyle = '#00ff00';
     ctx.font = '15px "Press Start 2P"';
     let valueText = attr.value;
@@ -468,11 +515,9 @@ async function generateBanner() {
     ctx.restore();
   }
   
-  // Calculate bottom position for match result
   const attrsBottom = currentY + (attrs.length * (boxHeight + spacing)) + 30;
   const matchY = Math.max(attrsBottom + 30, height - 130);
   
-  // ========== MATCH RESULT ==========
   const matches = findMatchesForNFT(currentNFT);
   const matchBoxWidth = width - rightX - 80;
   const matchBoxHeight = 85;
@@ -497,7 +542,6 @@ async function generateBanner() {
     ctx.fillText('❌ NO MATCH FOUND IN CRYPTO PUNKS', centerX, matchY + 48);
   }
   
-  // ========== FOOTER ==========
   ctx.fillStyle = '#8888aa';
   ctx.font = '12px "Press Start 2P"';
   ctx.textAlign = 'center';
@@ -525,9 +569,6 @@ async function downloadBanner() {
   }
 }
 
-// ============================================================
-// SHARE BANNER TO X (TWITTER) - POST WITH BANNER IMAGE
-// ============================================================
 async function shareBannerToX() {
   if (!currentNFT) {
     showToast('Create an NFT first!');
@@ -537,15 +578,11 @@ async function shareBannerToX() {
   showToast('Preparing banner for X post...');
   
   try {
-    // Generate banner image
     const bannerDataUrl = await generateBanner();
-    
-    // Convert data URL to blob
     const response = await fetch(bannerDataUrl);
     const blob = await response.blob();
     const file = new File([blob], `${currentNFT.name.replace(/\s/g,'_')}_BANNER.png`, { type: 'image/png' });
     
-    // Create share text for X (without attributes list)
     const matches = findMatchesForNFT(currentNFT);
     const matchText = matches.length > 0 
       ? `🎯 MATCH FOUND! ${matches.length} identical tokens in CryptoPunks!` 
@@ -553,7 +590,6 @@ async function shareBannerToX() {
     
     const shareText = `🟦 ${currentNFT.name}\n\n${matchText}\n\n⬛ Follow @404punklab\n⚡ Join the community for future drops!\n\n#404PUNKS #NFT #CryptoPunks`;
     
-    // Use Web Share API if available (mobile)
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
@@ -568,23 +604,19 @@ async function shareBannerToX() {
       }
     }
     
-    // For desktop: Create a temporary download and instruct user
-    // Alternative: Open X.com with text and let user upload manually
     const encodedText = encodeURIComponent(shareText);
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
     window.open(twitterUrl, '_blank', 'width=600,height=500');
     
-    // Also trigger download so user can attach the banner
     const downloadLink = document.createElement('a');
     downloadLink.download = `${currentNFT.name.replace(/\s/g,'_')}_BANNER.png`;
     downloadLink.href = bannerDataUrl;
     downloadLink.click();
     
-    showToast('X opened! Download banner saved - attach it to your post.', 5000);
+    showToast('X opened! Banner saved - attach it to your post.', 5000);
     
   } catch(err) {
     console.error('Share error:', err);
-    // Ultimate fallback: text-only share
     const matches = findMatchesForNFT(currentNFT);
     const matchText = matches.length > 0 
       ? `MATCH FOUND! ${matches.length} identical tokens!` 
@@ -888,7 +920,8 @@ window.App = {
   downloadBanner,
   shareBannerToX,
   openEditor,
-  closeEditor
+  closeEditor,
+  showMatchPopup
 };
 
 document.getElementById('add-layer-section').addEventListener('change', () => renderAvailableLayers());
