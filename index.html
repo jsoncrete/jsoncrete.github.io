@@ -12,6 +12,101 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ─── LOADING SCREEN ─── */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #008080;
+      background-image:
+        radial-gradient(circle at 20% 80%, rgba(0,0,80,0.18) 0%, transparent 60%),
+        radial-gradient(circle at 80% 20%, rgba(0,80,80,0.18) 0%, transparent 60%);
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #loading-screen::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.06) 2px, rgba(0,0,0,.06) 4px);
+      pointer-events: none;
+      z-index: 100001;
+    }
+    .loading-window {
+      background: #c0c0c0;
+      border: 3px solid;
+      border-top-color: #ffffff; border-left-color: #ffffff;
+      border-right-color: #808080; border-bottom-color: #808080;
+      width: 500px; max-width: 92vw;
+      box-shadow: 4px 4px 0 #000;
+      position: relative; z-index: 100002;
+    }
+    .loading-titlebar {
+      background: linear-gradient(90deg, #000080 0%, #1084d0 100%);
+      color: #ffffff;
+      padding: 6px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: 'Press Start 2P', monospace; font-size: 9px;
+      user-select: none;
+    }
+    .loading-close-btn {
+      background: #c0c0c0; color: #000;
+      border: 2px solid;
+      border-top-color: #ffffff; border-left-color: #ffffff;
+      border-right-color: #808080; border-bottom-color: #808080;
+      width: 18px; height: 16px; font-size: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .loading-body {
+      padding: 22px 24px 20px 24px;
+      background: #c0c0c0;
+      text-align: center;
+    }
+    .loading-gif {
+      width: 80px; height: 80px;
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+      margin-bottom: 12px;
+      border: 2px inset #808080;
+    }
+    .loading-signal-text {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px; color: #000080;
+      margin-bottom: 14px;
+      letter-spacing: 1px;
+    }
+    .loading-msg {
+      font-family: 'VT323', monospace;
+      font-size: 17px; color: #000;
+      min-height: 22px; margin-bottom: 4px;
+    }
+    .loading-bar-outer {
+      width: 100%; height: 26px;
+      border: 2px solid;
+      border-top-color: #808080; border-left-color: #808080;
+      border-right-color: #ffffff; border-bottom-color: #ffffff;
+      background: #ffffff;
+      padding: 2px;
+      margin: 10px 0 6px 0;
+    }
+    .loading-bar-inner {
+      height: 100%;
+      background: repeating-linear-gradient(90deg, #006400 0, #006400 14px, #004400 14px, #004400 18px);
+      width: 0%;
+      transition: width 0.45s ease;
+    }
+    .loading-detail {
+      font-family: 'VT323', monospace;
+      font-size: 14px; color: #555;
+      min-height: 18px;
+    }
+    .loading-pct {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px; color: #000080;
+      margin-top: 8px;
+    }
+
     /* ─── DESKTOP / WALLPAPER ─── */
     body {
       background: #008080;
@@ -197,9 +292,7 @@
       cursor: pointer;
       -webkit-appearance: none; -moz-appearance: none; appearance: none;
     }
-    .w95-select-wrap {
-      position: relative;
-    }
+    .w95-select-wrap { position: relative; }
     .w95-select-wrap::after {
       content: "▼";
       position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
@@ -220,7 +313,6 @@
       font-family: 'Press Start 2P', monospace; font-size: 8px;
       padding: 0 6px; color: #000;
     }
-    /* inset panel */
     .w95-panel {
       background: #ffffff;
       border: 2px solid;
@@ -425,6 +517,16 @@
     .avail-layer img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff; display: block; }
     .avail-layer span { font-family: 'Press Start 2P', monospace; font-size: 5.5px; display: block; margin-top: 3px; word-break: break-all; line-height: 1.4; }
 
+    /* ─── BEARD LOCKED NOTICE ─── */
+    .beard-locked-notice {
+      background: #400000; color: #ffaaaa;
+      border: 2px inset #808080;
+      padding: 10px 14px;
+      font-family: 'Press Start 2P', monospace; font-size: 7px;
+      text-align: center; line-height: 1.8;
+      grid-column: 1 / -1;
+    }
+
     /* ─── MODAL ─── */
     .modal {
       display: none; position: fixed;
@@ -557,6 +659,31 @@
   </style>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════════════════
+     LOADING SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="loading-screen">
+  <div class="loading-window">
+    <div class="loading-titlebar">
+      <span>📡 404 Punks Lab • Identity Registry v3.0</span>
+      <div class="loading-close-btn">✕</div>
+    </div>
+    <div class="loading-body">
+      <img class="loading-gif"
+        src="https://raw.githubusercontent.com/robosym/roborym.github.io/main/gif/1.gif"
+        alt="signal"
+        onerror="this.style.display='none'">
+      <div class="loading-signal-text">404 SIGNAL DETECTED</div>
+      <div class="loading-msg" id="loading-text">Bootstrapping IPFS gateway...</div>
+      <div class="loading-bar-outer">
+        <div class="loading-bar-inner" id="loading-bar"></div>
+      </div>
+      <div class="loading-detail" id="loading-detail">Resolving on-chain identity registry...</div>
+      <div class="loading-pct" id="loading-pct">0%</div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════
      TASKBAR
@@ -943,9 +1070,19 @@
 <script>
 // ─── CONFIG ───────────────────────────────────────────────
 const FIXED_INDEX_URL = "https://raw.githubusercontent.com/punksgif/punksgif.github.io/main/index.json";
-// No Beard in sections
-const SECTIONS_ORDER = ["Background","Base","Nose","Face","Neck","Mouth","Head","Eyes","Accessory","Ear"];
+// Beard IS in SECTIONS_ORDER now — shown only for Alien/Ape bases
+const SECTIONS_ORDER = ["Background","Base","Nose","Face","Neck","Mouth","Head","Eyes","Accessory","Ear","Beard"];
 const STORAGE_KEY = '404punks_current_nft_v2';
+
+// ─── Bases that allow Beard ────────────────────────────────
+const BEARD_ALLOWED_BASES = ['alien', 'ape']; // lowercase match
+
+function isBeardAllowed(nft) {
+  if (!nft || !nft.layers) return false;
+  const baseLayer = nft.layers.find(l => l.section === 'Base');
+  if (!baseLayer) return false;
+  return BEARD_ALLOWED_BASES.some(b => String(baseLayer.value).toLowerCase().includes(b));
+}
 
 // ─── FIREBASE ─────────────────────────────────────────────
 const firebaseConfig = {
@@ -999,6 +1136,47 @@ function esc(str) {
   return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]||m));
 }
 
+// ─── LOADING SEQUENCE ─────────────────────────────────────
+function startLoadingSequence() {
+  const steps = [
+    [15,  "Bootstrapping IPFS gateway...",       "Resolving on-chain identity registry"],
+    [30,  "Loading metadata registry...",         "Fetching CID shard mappings"],
+    [50,  "Calibrating NFT rotator...",           "Setting entropy stream handlers"],
+    [70,  "Rendering identity gallery...",        "Preparing first 500 shards"],
+    [85,  "Finalizing contract interface...",     "Establishing on-chain link"],
+    [100, "Portal active!",                        "All subsystems nominal — ready"]
+  ];
+
+  let stepIdx = 0;
+  const interval = setInterval(() => {
+    if (stepIdx >= steps.length) { clearInterval(interval); return; }
+    const [pct, text, detail] = steps[stepIdx];
+    stepIdx++;
+
+    const bar  = document.getElementById('loading-bar');
+    const msg  = document.getElementById('loading-text');
+    const det  = document.getElementById('loading-detail');
+    const pctEl= document.getElementById('loading-pct');
+
+    if (bar)   bar.style.width = pct + '%';
+    if (msg)   msg.textContent = text;
+    if (det)   det.textContent = detail;
+    if (pctEl) pctEl.textContent = pct + '%';
+
+    if (pct >= 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        const ls = document.getElementById('loading-screen');
+        if (ls) {
+          ls.style.transition = 'opacity 0.4s ease';
+          ls.style.opacity = '0';
+          setTimeout(() => { ls.style.display = 'none'; }, 420);
+        }
+      }, 400);
+    }
+  }, 280);
+}
+
 // ─── NAV ──────────────────────────────────────────────────
 function showHome() {
   document.getElementById('home-page').classList.remove('hidden');
@@ -1025,11 +1203,17 @@ function toggleStartMenu() {}
 function buildSectionListbox() {
   const lb = document.getElementById('section-listbox');
   if (!lb) return;
-  lb.innerHTML = SECTIONS_ORDER.map(s => `
+  // Build display list: show Beard only if current NFT allows it
+  const beardAllowed = currentNFT ? isBeardAllowed(currentNFT) : false;
+  const displaySections = SECTIONS_ORDER.filter(s => {
+    if (s === 'Beard') return beardAllowed;
+    return true;
+  });
+  lb.innerHTML = displaySections.map(s => `
     <div class="listbox-item" data-section="${s}" onclick="selectSection('${s}')"
       style="padding:5px 10px; cursor:pointer; font-family:'Press Start 2P',monospace; font-size:8px; border-bottom:1px solid #ccc;
              background:${s===selectedSection?'#000080':'#fff'}; color:${s===selectedSection?'#fff':'#000'};">
-      ${s}
+      ${s}${s==='Beard'?' 🧔':''}
     </div>
   `).join('');
 }
@@ -1166,8 +1350,6 @@ function listenFirebase() {
     const d = snap.val();
     if (d && typeof d === 'object') {
       for (let s of SECTIONS_ORDER) {
-        // Skip Beard entirely
-        if (s === 'Beard') { layersBySection[s] = []; continue; }
         let raw = d[s];
         if (!raw) { layersBySection[s] = []; continue; }
         if (Array.isArray(raw)) {
@@ -1241,8 +1423,24 @@ function generateRandomLayers(gender) {
   const base = baseLayers[Math.floor(Math.random()*baseLayers.length)];
   pickedLayers.push({ section:'Base', value:base.value, imageUrl:base.imageUrl });
 
+  // Check if this base allows Beard
+  const beardOK = BEARD_ALLOWED_BASES.some(b => String(base.value).toLowerCase().includes(b));
+
   for (const s of SECTIONS_ORDER) {
-    if (s === 'Background' || s === 'Base' || s === 'Beard') continue;
+    if (s === 'Background' || s === 'Base') continue;
+
+    // Beard: only for Alien/Ape, and only male
+    if (s === 'Beard') {
+      if (!beardOK || gender !== 'male') continue;
+      const beardLayers = (layersBySection['Beard']||[]).filter(l=>l.gender==='both'||l.gender===gender);
+      if (!beardLayers.length) continue;
+      if (Math.random() < 0.45) {
+        const picked = beardLayers[Math.floor(Math.random()*beardLayers.length)];
+        pickedLayers.push({ section:'Beard', value:picked.value, imageUrl:picked.imageUrl });
+      }
+      continue;
+    }
+
     const available = (layersBySection[s]||[]).filter(l=>l.gender==='both'||l.gender===gender);
     if (!available.length) continue;
     const chance = s==='Neck'?0.10 : s==='Face'?0.07 : s==='Nose'?0.04 : s==='Mouth'?0.16 : s==='Ear'?0.40 : s==='Accessory'?0.55 : 0.65;
@@ -1356,13 +1554,26 @@ function renderLayersEditor() {
 
 function renderAvailableLayers() {
   const gender = currentNFT ? currentNFT.gender : 'both';
-  // Exclude Beard section
-  const layers = (layersBySection[selectedSection]||[]).filter(l => {
-    if (selectedSection === 'Beard') return false;
-    return l.gender==='both' || l.gender===gender;
-  });
   const container = document.getElementById('available-layers');
   if (!container) return;
+
+  // ── BEARD SECTION: show locked notice if base isn't Alien/Ape ──
+  if (selectedSection === 'Beard') {
+    const allowed = currentNFT ? isBeardAllowed(currentNFT) : false;
+    if (!allowed) {
+      container.innerHTML = `<div class="beard-locked-notice">
+        🔒 BEARD is only available for<br>
+        <span style="color:#ffff00;">ALIEN</span> &amp; <span style="color:#ffff00;">APE</span> bases<br>
+        <span style="font-size:6px; color:#ff8888; margin-top:4px; display:block;">Change your Base to Alien or Ape to unlock Beard</span>
+      </div>`;
+      return;
+    }
+  }
+
+  const layers = (layersBySection[selectedSection]||[]).filter(l => {
+    return l.gender==='both' || l.gender===gender;
+  });
+
   if (!layers.length) {
     container.innerHTML = '<div style="font-family:\'Press Start 2P\',monospace; font-size:7px; text-align:center; padding:20px; grid-column:1/-1;">[ NO LAYERS AVAILABLE ]</div>';
     return;
@@ -1378,7 +1589,13 @@ function renderAvailableLayers() {
 
 async function addLayerToNFT(section, value, imageUrl) {
   if (!currentNFT) return;
-  if (section === 'Beard') return; // Block Beard
+
+  // Block Beard for non-Alien/Ape bases
+  if (section === 'Beard' && !isBeardAllowed(currentNFT)) {
+    showToast('⚠️ Beard only available for Alien & Ape bases!');
+    return;
+  }
+
   currentNFT.layers = (currentNFT.layers||[]).filter(l => l.section !== section);
   currentNFT.layers.push({ section, value, imageUrl });
   currentNFT.layers.sort((a,b)=>SECTIONS_ORDER.indexOf(a.section)-SECTIONS_ORDER.indexOf(b.section));
@@ -1404,6 +1621,10 @@ async function deleteLayer(index) {
   const removed = currentNFT.layers[index];
   if (confirm(`Remove layer "${removed.section}: ${removed.value}"?`)) {
     currentNFT.layers.splice(index, 1);
+    // If base changed and no longer supports beard, strip beard
+    if (removed.section === 'Base' && !isBeardAllowed(currentNFT)) {
+      currentNFT.layers = currentNFT.layers.filter(l => l.section !== 'Beard');
+    }
     await recomposeAndRefresh();
     showToast('Layer removed');
   }
@@ -1411,6 +1632,12 @@ async function deleteLayer(index) {
 
 async function recomposeAndRefresh() {
   if (!currentNFT) return;
+
+  // Auto-remove Beard if base changed and no longer qualifies
+  if (!isBeardAllowed(currentNFT)) {
+    currentNFT.layers = currentNFT.layers.filter(l => l.section !== 'Beard');
+  }
+
   currentNFT.image = await compositeFromLayers(currentNFT.layers);
   currentNFT.attributes = buildNFTAttributes(currentNFT.layers);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(currentNFT));
@@ -1421,6 +1648,8 @@ async function recomposeAndRefresh() {
   img.src = currentNFT.image;
   renderAttributes(currentNFT.attributes);
   renderLayersEditor();
+  // Rebuild listbox so Beard shows/hides based on new base
+  buildSectionListbox();
   updateMatchDisplay();
   updateStats();
 }
@@ -1428,7 +1657,6 @@ async function recomposeAndRefresh() {
 function updateStats() {
   let totalLayers = 0;
   for (const s of SECTIONS_ORDER) {
-    if (s === 'Beard') continue;
     totalLayers += (layersBySection[s]||[]).length;
   }
   document.getElementById('stat-layers').textContent = totalLayers;
@@ -1505,18 +1733,15 @@ async function generateBanner() {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, width, height);
 
-  // Grid lines
   ctx.strokeStyle = 'rgba(0,0,128,0.4)'; ctx.lineWidth = 1;
   for (let x=0; x<width; x+=80) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,height); ctx.stroke(); }
   for (let y=0; y<height; y+=80) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(width,y); ctx.stroke(); }
 
-  // Border
   ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 8;
   ctx.strokeRect(16, 16, width-32, height-32);
   ctx.strokeStyle = '#0000cc'; ctx.lineWidth = 3;
   ctx.strokeRect(28, 28, width-56, height-56);
 
-  // NFT image
   const imgSize = 760;
   const imgX = 140, imgY = (height-imgSize)/2;
   const nftImg = new Image();
@@ -1527,7 +1752,6 @@ async function generateBanner() {
   ctx.strokeStyle='#ffff00'; ctx.lineWidth=6;
   ctx.strokeRect(imgX, imgY, imgSize, imgSize);
 
-  // Right column
   const rx = imgX + imgSize + 120;
   let cy = 160;
 
@@ -1653,6 +1877,8 @@ window.App = {
 // ─── INIT ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   updateClock();
+  // Start loading sequence immediately
+  startLoadingSequence();
   showHome();
   // Pre-init in background
   listenFirebase();
