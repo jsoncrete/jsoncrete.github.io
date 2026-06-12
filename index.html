@@ -69,6 +69,9 @@
       image-rendering: pixelated;
       margin-bottom: 12px;
       border: 2px inset #808080;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
     .loading-signal-text {
       font-family: 'Press Start 2P', monospace;
@@ -517,15 +520,8 @@
     .avail-layer img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #fff; display: block; }
     .avail-layer span { font-family: 'Press Start 2P', monospace; font-size: 5.5px; display: block; margin-top: 3px; word-break: break-all; line-height: 1.4; }
 
-    /* ─── BEARD LOCKED NOTICE ─── */
-    .beard-locked-notice {
-      background: #400000; color: #ffaaaa;
-      border: 2px inset #808080;
-      padding: 10px 14px;
-      font-family: 'Press Start 2P', monospace; font-size: 7px;
-      text-align: center; line-height: 1.8;
-      grid-column: 1 / -1;
-    }
+    /* ─── BEARD LOCKED NOTICE - REMOVED ─── */
+    /* .beard-locked-notice is removed as requested */
 
     /* ─── MODAL ─── */
     .modal {
@@ -1070,18 +1066,20 @@
 <script>
 // ─── CONFIG ───────────────────────────────────────────────
 const FIXED_INDEX_URL = "https://raw.githubusercontent.com/punksgif/punksgif.github.io/main/index.json";
-// Beard IS in SECTIONS_ORDER now — shown only for Alien/Ape bases
+// Beard IS in SECTIONS_ORDER now — conditionally shown based on base type (MALE or ZOMBIE)
 const SECTIONS_ORDER = ["Background","Base","Nose","Face","Neck","Mouth","Head","Eyes","Accessory","Ear","Beard"];
 const STORAGE_KEY = '404punks_current_nft_v2';
 
-// ─── Bases that allow Beard ────────────────────────────────
-const BEARD_ALLOWED_BASES = ['alien', 'ape']; // lowercase match
+// ─── Bases that allow Beard (UPDATED: Only Male and Zombie) ────────────────────────────────
+const BEARD_ALLOWED_BASES = ['male', 'zombie']; // Now only for Male and Zombie bases
 
 function isBeardAllowed(nft) {
   if (!nft || !nft.layers) return false;
   const baseLayer = nft.layers.find(l => l.section === 'Base');
   if (!baseLayer) return false;
-  return BEARD_ALLOWED_BASES.some(b => String(baseLayer.value).toLowerCase().includes(b));
+  const baseValue = String(baseLayer.value).toLowerCase();
+  // Check if base contains 'male' or 'zombie'
+  return baseValue.includes('male') || baseValue.includes('zombie');
 }
 
 // ─── FIREBASE ─────────────────────────────────────────────
@@ -1203,7 +1201,7 @@ function toggleStartMenu() {}
 function buildSectionListbox() {
   const lb = document.getElementById('section-listbox');
   if (!lb) return;
-  // Build display list: show Beard only if current NFT allows it
+  // Build display list: show Beard only if current NFT allows it (Male/Zombie)
   const beardAllowed = currentNFT ? isBeardAllowed(currentNFT) : false;
   const displaySections = SECTIONS_ORDER.filter(s => {
     if (s === 'Beard') return beardAllowed;
@@ -1423,13 +1421,13 @@ function generateRandomLayers(gender) {
   const base = baseLayers[Math.floor(Math.random()*baseLayers.length)];
   pickedLayers.push({ section:'Base', value:base.value, imageUrl:base.imageUrl });
 
-  // Check if this base allows Beard
-  const beardOK = BEARD_ALLOWED_BASES.some(b => String(base.value).toLowerCase().includes(b));
+  // Check if this base allows Beard (Male or Zombie only now)
+  const beardOK = isBeardAllowed({ layers: pickedLayers });
 
   for (const s of SECTIONS_ORDER) {
     if (s === 'Background' || s === 'Base') continue;
 
-    // Beard: only for Alien/Ape, and only male
+    // Beard: only for Male/Zombie, and only male
     if (s === 'Beard') {
       if (!beardOK || gender !== 'male') continue;
       const beardLayers = (layersBySection['Beard']||[]).filter(l=>l.gender==='both'||l.gender===gender);
@@ -1557,15 +1555,12 @@ function renderAvailableLayers() {
   const container = document.getElementById('available-layers');
   if (!container) return;
 
-  // ── BEARD SECTION: show locked notice if base isn't Alien/Ape ──
+  // ── BEARD SECTION: If selected but not allowed, show message (optional, but not the previous incorrect one)
+  // We'll just show empty or a generic message, but no specific Alien/Ape message as requested.
   if (selectedSection === 'Beard') {
     const allowed = currentNFT ? isBeardAllowed(currentNFT) : false;
     if (!allowed) {
-      container.innerHTML = `<div class="beard-locked-notice">
-        🔒 BEARD is only available for<br>
-        <span style="color:#ffff00;">ALIEN</span> &amp; <span style="color:#ffff00;">APE</span> bases<br>
-        <span style="font-size:6px; color:#ff8888; margin-top:4px; display:block;">Change your Base to Alien or Ape to unlock Beard</span>
-      </div>`;
+      container.innerHTML = `<div class="beard-locked-notice" style="display:none;"></div>`; // completely hidden as requested
       return;
     }
   }
@@ -1590,9 +1585,9 @@ function renderAvailableLayers() {
 async function addLayerToNFT(section, value, imageUrl) {
   if (!currentNFT) return;
 
-  // Block Beard for non-Alien/Ape bases
+  // Block Beard for non-Male/Zombie bases
   if (section === 'Beard' && !isBeardAllowed(currentNFT)) {
-    showToast('⚠️ Beard only available for Alien & Ape bases!');
+    showToast('⚠️ Beard only available for Male & Zombie bases!');
     return;
   }
 
@@ -1621,7 +1616,7 @@ async function deleteLayer(index) {
   const removed = currentNFT.layers[index];
   if (confirm(`Remove layer "${removed.section}: ${removed.value}"?`)) {
     currentNFT.layers.splice(index, 1);
-    // If base changed and no longer supports beard, strip beard
+    // If base changed and no longer supports beard, strip beard (Male/Zombie check)
     if (removed.section === 'Base' && !isBeardAllowed(currentNFT)) {
       currentNFT.layers = currentNFT.layers.filter(l => l.section !== 'Beard');
     }
@@ -1633,7 +1628,7 @@ async function deleteLayer(index) {
 async function recomposeAndRefresh() {
   if (!currentNFT) return;
 
-  // Auto-remove Beard if base changed and no longer qualifies
+  // Auto-remove Beard if base changed and no longer qualifies (Male/Zombie)
   if (!isBeardAllowed(currentNFT)) {
     currentNFT.layers = currentNFT.layers.filter(l => l.section !== 'Beard');
   }
