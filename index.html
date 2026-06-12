@@ -970,9 +970,9 @@
 <div id="editor-modal" class="modal">
   <div class="modal-content w95-window">
     <div class="w95-titlebar">
-      <div class="w95-titlebar-left"><span>✏️</span><span>Edit NFT — Layer Manager</span></div>
+      <div class="w95-titlebar-left"><span><a href="https://freeimage.host/"><img src="https://iili.io/CCwJUQf.png" alt="CCwJUQf.png" border="0" /></a></span><span>Edit NFT — Layer Manager</span></div>
       <div class="w95-title-btns">
-        <button class="w95-tbtn" onclick="App.closeEditor()">✕</button>
+        <button class="w95-tbtn" onclick="App.closeEditor()"><a href="https://freeimage.host/"><img src="https://iili.io/CCwJ8Is.png" alt="CCwJ8Is.png" border="0" /></a></button>
       </div>
     </div>
     <div class="w95-menubar">
@@ -1659,7 +1659,7 @@ function updateStats() {
     const traitCount = currentNFT.layers.filter(l=>l.section!=='Background'&&l.section!=='Base').length;
     document.getElementById('stat-traits').textContent = traitCount;
     document.getElementById('stat-unique').innerHTML = isIndexLoaded
-      ? (findMatchesForNFT(currentNFT).length===0 ? '✅ YES' : '⚠️ DUP')
+      ? (findMatchesForNFT(currentNFT).length===0 ? '✅ YES' : '<a href="https://freeimage.host/"><img src="https://iili.io/CCwJShG.png" alt="CCwJShG.png" border="0" /></a> DUP')
       : '—';
   }
 }
