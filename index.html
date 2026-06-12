@@ -48,13 +48,81 @@
     .share-btn:active { border-top-color: #0e6ea5; border-left-color: #0e6ea5; border-right-color: #6ec8ff; border-bottom-color: #6ec8ff; transform: translate(2px, 2px); }
     .x-post-banner-btn { background: #000000; border: 3px solid; border-top-color: #444444; border-left-color: #444444; border-right-color: #222222; border-bottom-color: #222222; padding: 12px 24px; font-family: 'Press Start 2P', monospace; font-size: 10px; cursor: pointer; color: #fff; width: 100%; margin-top: 10px; }
     .x-post-banner-btn:active { border-top-color: #222222; border-left-color: #222222; border-right-color: #444444; border-bottom-color: #444444; transform: translate(2px, 2px); }
-    .match-link { color: #00ff00; text-decoration: underline; cursor: pointer; }
-    .match-link:hover { color: #ffff00; }
     .punk-id { cursor: pointer; color: #00ff00; text-decoration: underline; }
     .punk-id:hover { color: #ffff00; }
+    
+    /* LOADING SCREEN STYLES */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #008080;
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .loading-window {
+      width: 500px;
+      max-width: 90%;
+    }
+    .loading-bar-outer {
+      width: 100%;
+      height: 26px;
+      border: 2px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+      background: #ffffff;
+      padding: 2px;
+    }
+    .loading-bar-inner {
+      height: 100%;
+      background: #006400;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    .scanlines::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px);
+      pointer-events: none;
+    }
+    .title-bar-loading {
+      background: linear-gradient(90deg, #000080, #1084d0);
+      color: white;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
   </style>
 </head>
 <body>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen" class="loading-screen scanlines">
+  <div class="loading-window win95-border p-0">
+    <div class="title-bar-loading">
+      <span>📡 404 Punks Lab • Identity Registry v3.0</span>
+      <div style="width:18px; height:16px; border:1px solid; border-color:#ffffff #808080 #808080 #ffffff; background:#c0c0c0;"></div>
+    </div>
+    <div class="p-6 flex flex-col items-center gap-4 bg-[#c0c0c0]">
+      <img src="https://raw.githubusercontent.com/robosym/roborym.github.io/main/gif/1.gif" alt="signal" style="width:80px; image-rendering:crisp-edges;">
+      <p class="press-start text-xs text-center text-[#000080]">404 SIGNAL DETECTED</p>
+      <p class="text-xl" id="loading-text">Bootstrapping IPFS gateway...</p>
+      <div class="loading-bar-outer"><div class="loading-bar-inner" id="loading-bar"></div></div>
+      <p class="text-sm text-gray-800" id="loading-detail">Resolving on-chain identity registry...</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN PORTAL (HIDDEN UNTIL LOADING COMPLETE) -->
+<div id="main-portal" style="display:none;">
 <div class="win95-desktop">
   <div class="win95-window">
     <div class="win95-titlebar"><span>📁 404 PUNKS - NFT GENERATOR</span><button onclick="location.reload()">✕</button></div>
@@ -92,10 +160,10 @@
             <div id="match-container"></div>
             
             <!-- BANNER DOWNLOAD BUTTON -->
-            <button id="download-banner-btn" onclick="App.downloadBanner()" class="download-banner-btn">X POST BANNER</button>
+            <button id="download-banner-btn" onclick="App.downloadBanner()" class="download-banner-btn">📺 DOWNLOAD YOUTUBE BANNER (2560x1440)</button>
             
             <!-- X POST WITH BANNER BUTTON -->
-            <button id="x-post-banner-btn" onclick="App.shareBannerToX()" class="x-post-banner-btn">X POST WITH BANNER</button>
+            <button id="x-post-banner-btn" onclick="App.shareBannerToX()" class="x-post-banner-btn">🐦 X POST WITH BANNER</button>
             
             <!-- EDIT BUTTON -->
             <div style="margin-top: 10px;">
@@ -114,6 +182,7 @@
 
     </div>
   </div>
+</div>
 </div>
 
 <!-- EDITOR MODAL -->
@@ -285,8 +354,7 @@ function showMatchPopup(matches) {
   if (!matches.length) {
     content.innerHTML = '<div style="text-align:center; padding:20px;">❌ No matching CryptoPunks found</div>';
   } else {
-    const punkIds = matches.map(id => id);
-    const punkLinks = punkIds.map(id => 
+    const punkLinks = matches.map(id => 
       `<div style="margin: 8px 0;">
          <a href="https://www.cryptopunks.app/cryptopunks/details/${id}" target="_blank" style="color:#00ff00; text-decoration:underline; font-family:'Press Start 2P',monospace; font-size:9px;">🔗 CryptoPunk #${id}</a>
        </div>`
@@ -390,7 +458,7 @@ async function compositeFromLayers(layers, w=400, h=400) {
 }
 
 // ============================================================
-// YOUTUBE BANNER GENERATION (2560x1440) - NFT LEFT, ATTRIBUTES RIGHT
+// YOUTUBE BANNER GENERATION
 // ============================================================
 async function generateBanner() {
   if (!currentNFT) return null;
@@ -402,46 +470,37 @@ async function generateBanner() {
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   
-  // Background - dark gradient
   const gradient = ctx.createLinearGradient(0, 0, width, height);
   gradient.addColorStop(0, '#0a0a2a');
   gradient.addColorStop(1, '#1a1a3a');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
   
-  // Pixel border effect
   ctx.strokeStyle = '#ffff00';
   ctx.lineWidth = 6;
   ctx.strokeRect(15, 15, width - 30, height - 30);
   
-  // ========== LEFT SIDE: NFT IMAGE ==========
   const imgSize = 800;
   const imgX = 120;
   const imgY = (height - imgSize) / 2;
   
-  // Load and draw NFT image
   const nftImg = new Image();
   await new Promise((resolve) => {
     nftImg.onload = resolve;
     nftImg.src = currentNFT.image;
   });
   
-  // Shadow effect
   ctx.shadowColor = 'rgba(0,0,0,0.5)';
   ctx.shadowBlur = 15;
   ctx.drawImage(nftImg, imgX, imgY, imgSize, imgSize);
   ctx.shadowBlur = 0;
-  
-  // NFT border
   ctx.strokeStyle = '#ffff00';
   ctx.lineWidth = 5;
   ctx.strokeRect(imgX, imgY, imgSize, imgSize);
   
-  // ========== RIGHT SIDE: NFT NAME ==========
   const rightX = imgX + imgSize + 100;
   let currentY = 180;
   
-  // Title "404 PUNKS"
   ctx.fillStyle = '#ffff00';
   ctx.font = '56px "Press Start 2P"';
   ctx.textAlign = 'left';
@@ -451,13 +510,11 @@ async function generateBanner() {
   ctx.shadowBlur = 0;
   currentY += 80;
   
-  // NFT Name
   ctx.fillStyle = '#00ff00';
   ctx.font = '32px "Press Start 2P"';
   ctx.fillText(currentNFT.name, rightX, currentY);
   currentY += 70;
   
-  // Divider line
   ctx.strokeStyle = '#4444ff';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -466,15 +523,12 @@ async function generateBanner() {
   ctx.stroke();
   currentY += 50;
   
-  // ========== ATTRIBUTES SECTION ==========
   ctx.fillStyle = '#ccccff';
   ctx.font = '24px "Press Start 2P"';
   ctx.fillText('ATTRIBUTES', rightX, currentY);
   currentY += 55;
   
   const attrs = currentNFT.attributes.filter(a => a.trait_type !== 'Attribute Count');
-  
-  // Wider boxes for long text
   const boxWidth = 380;
   const boxHeight = 50;
   const spacing = 12;
@@ -482,7 +536,6 @@ async function generateBanner() {
   for (let i = 0; i < attrs.length; i++) {
     const attr = attrs[i];
     const y = currentY + (i * (boxHeight + spacing));
-    
     if (y + boxHeight > height - 150) break;
     
     ctx.fillStyle = '#000080';
@@ -517,7 +570,6 @@ async function generateBanner() {
   
   const attrsBottom = currentY + (attrs.length * (boxHeight + spacing)) + 30;
   const matchY = Math.max(attrsBottom + 30, height - 130);
-  
   const matches = findMatchesForNFT(currentNFT);
   const matchBoxWidth = width - rightX - 80;
   const matchBoxHeight = 85;
@@ -910,6 +962,51 @@ function loadSavedNFT() {
 }
 
 // ============================================================
+// LOADING SCREEN SEQUENCE
+// ============================================================
+function startLoadingSequence() {
+  let progress = 0;
+  const steps = [
+    [15, "Bootstrapping IPFS gateway...", "Resolving on-chain identity registry"],
+    [30, "Loading metadata registry...", "Fetching CID shard mappings"],
+    [50, "Calibrating NFT rotator...", "Setting entropy stream handlers"],
+    [70, "Rendering identity gallery...", "Preparing first 500 shards"],
+    [85, "Finalizing contract interface...", "Establishing on-chain link"],
+    [100, "Portal active!", "All subsystems nominal — ready"]
+  ];
+  let stepIdx = 0;
+  const interval = setInterval(() => {
+    if (stepIdx >= steps.length) {
+      clearInterval(interval);
+      return;
+    }
+    const [pct, text, detail] = steps[stepIdx];
+    progress = pct;
+    const loadingBar = document.getElementById('loading-bar');
+    const loadingText = document.getElementById('loading-text');
+    const loadingDetail = document.getElementById('loading-detail');
+    if (loadingBar) loadingBar.style.width = progress + '%';
+    if (loadingText) loadingText.textContent = text;
+    if (loadingDetail) loadingDetail.textContent = detail;
+    stepIdx++;
+    if (progress >= 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        const mainPortal = document.getElementById('main-portal');
+        if (loadingScreen) loadingScreen.style.display = 'none';
+        if (mainPortal) mainPortal.style.display = 'block';
+        // Initialize everything after loading
+        listenFirebase();
+        loadIndexJSON();
+        loadSavedNFT();
+        updateStats();
+      }, 400);
+    }
+  }, 260);
+}
+
+// ============================================================
 // WINDOW.APP
 // ============================================================
 window.App = {
@@ -924,19 +1021,12 @@ window.App = {
   showMatchPopup
 };
 
-document.getElementById('add-layer-section').addEventListener('change', () => renderAvailableLayers());
+document.getElementById('add-layer-section')?.addEventListener('change', () => renderAvailableLayers());
 
 // ============================================================
-// INIT
+// INIT - START LOADING SEQUENCE FIRST
 // ============================================================
-async function init() {
-  listenFirebase();
-  loadIndexJSON();
-  loadSavedNFT();
-  updateStats();
-}
-
-init();
+document.addEventListener('DOMContentLoaded', startLoadingSequence);
 </script>
 </body>
 </html>
