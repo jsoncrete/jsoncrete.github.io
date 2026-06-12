@@ -13,7 +13,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #008080; font-family: 'VT323', 'Press Start 2P', monospace; overflow-x: hidden; padding: 20px; }
-    .win95-desktop { max-width: 900px; margin: 0 auto; }
+    .win95-desktop { max-width: 1000px; margin: 0 auto; }
     .win95-window { background: #c0c0c0; border: 3px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; margin-bottom: 20px; }
     .win95-titlebar { background: #000080; color: #ffffff; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; font-family: 'Press Start 2P', monospace; font-size: 11px; }
     .win95-titlebar button { background: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; width: 22px; height: 22px; cursor: pointer; }
@@ -22,22 +22,6 @@
     .win95-btn:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; transform: translate(1px, 1px); }
     .win95-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .win95-input { background: #ffffff; border: 2px inset #808080; padding: 8px 12px; font-family: 'VT323', monospace; font-size: 14px; width: 100%; outline: none; }
-    .nft-card { background: #d4d0c8; border: 3px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; margin-bottom: 16px; overflow: hidden; }
-    .progress-bar { background: #ffffff; border: 2px inset #808080; height: 24px; }
-    .progress-fill { background: #000080; height: 100%; width: 0%; transition: width 0.1s; }
-    #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #c0c0c0; border: 3px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; padding: 10px 20px; font-family: 'Press Start 2P', monospace; font-size: 10px; z-index: 10000; }
-    .hidden { display: none; }
-    .text-pixel { font-family: 'Press Start 2P', monospace; }
-    .layer-row { background: #d4d0c8; border: 2px outset #808080; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .move-btn { background: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; padding: 5px 10px; cursor: pointer; font-family: monospace; font-size: 14px; margin-left: 5px; }
-    .move-btn:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; }
-    .match-badge { background: #000080; color: #ffff00; border: 2px solid; border-top-color: #4444ff; border-left-color: #4444ff; border-right-color: #000044; border-bottom-color: #000044; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-top: 12px; display: block; text-align: center; line-height: 1.6; }
-    .match-badge-loading { background: #404040; color: #00ff00; border: 2px inset #808080; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-top: 12px; text-align: center; animation: blink 1s step-start infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .success-bg { background: #006400 !important; }
-    .stat-box { background: #000080; color: #00ff00; border: 2px inset #808080; padding: 10px; font-family: 'Press Start 2P', monospace; font-size: 8px; text-align: center; }
-    .gender-badge-m { background: #4488ff; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 6px; padding: 2px 6px; border-radius: 2px; }
-    .gender-badge-f { background: #ff88cc; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 6px; padding: 2px 6px; border-radius: 2px; }
     .create-btn { background: #00aa00; border: 4px solid; border-top-color: #00ff00; border-left-color: #00ff00; border-right-color: #005500; border-bottom-color: #005500; padding: 10px 20px; font-family: 'Press Start 2P', monospace; font-size: 12px; cursor: pointer; color: #ffffff; width: auto; letter-spacing: 1px; display: inline-block; }
     .create-btn:active { border-top-color: #005500; border-left-color: #005500; border-right-color: #00ff00; border-bottom-color: #00ff00; transform: translate(2px, 2px); }
     .create-btn:disabled { background: #555; opacity: 0.6; cursor: not-allowed; }
@@ -48,7 +32,18 @@
     .attribute-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #808080; font-family: 'VT323', monospace; font-size: 13px; }
     .attribute-label { font-weight: bold; color: #000080; }
     .attribute-value { color: #333; }
-    .placeholder-canvas { background: #000080; display: flex; align-items: center; justify-content: center; color: #ffff00; font-family: 'Press Start 2P', monospace; font-size: 20px; text-align: center; }
+    .layer-row { background: #d4d0c8; border: 2px outset #808080; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .move-btn { background: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; padding: 5px 10px; cursor: pointer; font-family: monospace; font-size: 14px; margin-left: 5px; }
+    .move-btn:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; }
+    .match-badge { background: #000080; color: #ffff00; border: 2px solid; border-top-color: #4444ff; border-left-color: #4444ff; border-right-color: #000044; border-bottom-color: #000044; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-top: 12px; display: block; text-align: center; line-height: 1.6; }
+    .match-badge-loading { background: #404040; color: #00ff00; border: 2px inset #808080; padding: 8px 12px; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-top: 12px; text-align: center; animation: blink 1s step-start infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .success-bg { background: #006400 !important; }
+    .stat-box { background: #000080; color: #00ff00; border: 2px inset #808080; padding: 10px; font-family: 'Press Start 2P', monospace; font-size: 8px; text-align: center; }
+    .gender-badge-m { background: #4488ff; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 6px; padding: 2px 6px; border-radius: 2px; }
+    .gender-badge-f { background: #ff88cc; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 6px; padding: 2px 6px; border-radius: 2px; }
+    .download-banner-btn { background: #000080; border: 3px solid; border-top-color: #4444ff; border-left-color: #4444ff; border-right-color: #000044; border-bottom-color: #000044; padding: 12px 24px; font-family: 'Press Start 2P', monospace; font-size: 11px; cursor: pointer; color: #fff; width: 100%; margin-top: 10px; }
+    .download-banner-btn:active { border-top-color: #000044; border-left-color: #000044; border-right-color: #4444ff; border-bottom-color: #4444ff; transform: translate(2px, 2px); }
   </style>
 </head>
 <body>
@@ -65,7 +60,7 @@
         </div>
       </div>
 
-      <!-- CREATE BUTTON - SMALLER -->
+      <!-- CREATE BUTTON -->
       <div style="text-align: center; margin-bottom: 20px;">
         <button id="create-nft-btn" onclick="App.createRandomNFT()" class="create-btn">CREATE NFT</button>
       </div>
@@ -88,44 +83,12 @@
             <!-- MATCH RESULT -->
             <div id="match-container"></div>
             
-            <!-- EDIT BUTTON -->
-            <div style="margin-top: 15px;">
-              <button onclick="App.openEditor()" class="win95-btn" style="width:100%; background:#000080; color:#fff;">✏️ EDIT NFT</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- EDITOR MODAL -->
-      <div id="editor-modal" class="modal">
-        <div class="modal-content win95-window">
-          <div class="win95-titlebar"><span>✏️ EDIT NFT</span><button onclick="App.closeEditor()">✕</button></div>
-          <div class="win95-content">
-            <div class="edit-section">
-              <div class="section-title">🎨 LAYERS (bottom → top)</div>
-              <div id="layers-editor" style="max-height: 300px; overflow-y: auto;"></div>
-              
-              <div style="margin-top: 15px;">
-                <div class="section-title" style="margin-bottom: 8px;">➕ ADD LAYER</div>
-                <select id="add-layer-section" class="win95-select" style="width: 100%; margin-bottom: 8px;">
-                  <option value="Background">Background</option>
-                  <option value="Base">Base</option>
-                  <option value="Nose">Nose</option>
-                  <option value="Face">Face</option>
-                  <option value="Neck">Neck</option>
-                  <option value="Mouth">Mouth</option>
-                  <option value="Head">Head</option>
-                  <option value="Eyes">Eyes</option>
-                  <option value="Beard">Beard</option>
-                  <option value="Accessory">Accessory</option>
-                  <option value="Ear">Ear</option>
-                </select>
-                <div id="available-layers" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; max-height: 250px; overflow-y: auto;"></div>
-              </div>
-            </div>
+            <!-- BANNER DOWNLOAD BUTTON -->
+            <button id="download-banner-btn" onclick="App.downloadBanner()" class="download-banner-btn">📺 DOWNLOAD YOUTUBE BANNER (2560x1440)</button>
             
-            <div class="flex-buttons" style="display: flex; gap: 10px; margin-top: 15px;">
-              <button onclick="App.closeEditor()" class="win95-btn" style="flex:1;">CLOSE</button>
+            <!-- EDIT BUTTON -->
+            <div style="margin-top: 10px;">
+              <button onclick="App.openEditor()" class="win95-btn" style="width:100%; background:#000080; color:#fff;">✏️ EDIT NFT</button>
             </div>
           </div>
         </div>
@@ -141,6 +104,42 @@
     </div>
   </div>
 </div>
+
+<!-- EDITOR MODAL -->
+<div id="editor-modal" class="modal">
+  <div class="modal-content win95-window">
+    <div class="win95-titlebar"><span>✏️ EDIT NFT</span><button onclick="App.closeEditor()">✕</button></div>
+    <div class="win95-content">
+      <div class="edit-section">
+        <div class="section-title">🎨 LAYERS (bottom → top)</div>
+        <div id="layers-editor" style="max-height: 300px; overflow-y: auto;"></div>
+        
+        <div style="margin-top: 15px;">
+          <div class="section-title" style="margin-bottom: 8px;">➕ ADD LAYER</div>
+          <select id="add-layer-section" class="win95-select" style="width: 100%; margin-bottom: 8px;">
+            <option value="Background">Background</option>
+            <option value="Base">Base</option>
+            <option value="Nose">Nose</option>
+            <option value="Face">Face</option>
+            <option value="Neck">Neck</option>
+            <option value="Mouth">Mouth</option>
+            <option value="Head">Head</option>
+            <option value="Eyes">Eyes</option>
+            <option value="Beard">Beard</option>
+            <option value="Accessory">Accessory</option>
+            <option value="Ear">Ear</option>
+          </select>
+          <div id="available-layers" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; max-height: 250px; overflow-y: auto;"></div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button onclick="App.closeEditor()" class="win95-btn" style="flex:1;">CLOSE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="hidden"></div>
 
 <script>
@@ -150,7 +149,6 @@
 const FIXED_INDEX_URL = "https://raw.githubusercontent.com/punksgif/punksgif.github.io/main/index.json";
 const SECTIONS_ORDER = ["Background","Base","Nose","Face","Neck","Mouth","Head","Eyes","Beard","Accessory","Ear"];
 const STORAGE_KEY = '404punks_current_nft';
-const STORAGE_LAYERS_KEY = '404punks_layers_v2';
 
 // ============================================================
 // FIREBASE
@@ -331,6 +329,194 @@ async function compositeFromLayers(layers, w=400, h=400) {
     if (img) ctx.drawImage(img, 0, 0, w, h);
   }
   return canvas.toDataURL('image/png');
+}
+
+// ============================================================
+// YOUTUBE BANNER GENERATION (2560x1440) - NFT LEFT, ATTRIBUTES RIGHT
+// ============================================================
+async function generateBanner() {
+  if (!currentNFT) return null;
+  
+  const width = 2560;
+  const height = 1440;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  
+  // Background - dark gradient
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, '#0a0a2a');
+  gradient.addColorStop(1, '#1a1a3a');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+  
+  // Pixel border effect
+  ctx.strokeStyle = '#ffff00';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(15, 15, width - 30, height - 30);
+  
+  // ========== LEFT SIDE: NFT IMAGE ==========
+  const imgSize = 800;
+  const imgX = 120;
+  const imgY = (height - imgSize) / 2;
+  
+  // Load and draw NFT image
+  const nftImg = new Image();
+  await new Promise((resolve) => {
+    nftImg.onload = resolve;
+    nftImg.src = currentNFT.image;
+  });
+  
+  // Shadow effect
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 15;
+  ctx.drawImage(nftImg, imgX, imgY, imgSize, imgSize);
+  ctx.shadowBlur = 0;
+  
+  // NFT border
+  ctx.strokeStyle = '#ffff00';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(imgX, imgY, imgSize, imgSize);
+  
+  // ========== RIGHT SIDE: NFT NAME ==========
+  const rightX = imgX + imgSize + 100;
+  let currentY = 180;
+  
+  // Title "404 PUNKS"
+  ctx.fillStyle = '#ffff00';
+  ctx.font = '56px "Press Start 2P"';
+  ctx.textAlign = 'left';
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = '#ff0000';
+  ctx.fillText('404 PUNKS', rightX, currentY);
+  ctx.shadowBlur = 0;
+  currentY += 80;
+  
+  // NFT Name
+  ctx.fillStyle = '#00ff00';
+  ctx.font = '32px "Press Start 2P"';
+  ctx.fillText(currentNFT.name, rightX, currentY);
+  currentY += 70;
+  
+  // Divider line
+  ctx.strokeStyle = '#4444ff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rightX, currentY);
+  ctx.lineTo(width - 80, currentY);
+  ctx.stroke();
+  currentY += 50;
+  
+  // ========== ATTRIBUTES SECTION ==========
+  ctx.fillStyle = '#ccccff';
+  ctx.font = '24px "Press Start 2P"';
+  ctx.fillText('ATTRIBUTES', rightX, currentY);
+  currentY += 55;
+  
+  const attrs = currentNFT.attributes.filter(a => a.trait_type !== 'Attribute Count');
+  
+  // Wider boxes for long text
+  const boxWidth = 380;
+  const boxHeight = 50;
+  const spacing = 12;
+  
+  for (let i = 0; i < attrs.length; i++) {
+    const attr = attrs[i];
+    const y = currentY + (i * (boxHeight + spacing));
+    
+    // Skip if outside canvas
+    if (y + boxHeight > height - 150) break;
+    
+    // Attribute box - taller and wider
+    ctx.fillStyle = '#000080';
+    ctx.fillRect(rightX, y, boxWidth, boxHeight);
+    ctx.strokeStyle = '#4444ff';
+    ctx.strokeRect(rightX, y, boxWidth, boxHeight);
+    
+    // Trait type (left side - yellow)
+    ctx.fillStyle = '#ffff00';
+    ctx.font = 'bold 16px "Press Start 2P"';
+    let typeText = attr.trait_type;
+    if (typeText.length > 12) typeText = typeText.substring(0, 10) + '..';
+    ctx.fillText(typeText, rightX + 15, y + 33);
+    
+    // Trait value (right side - green) - dynamically fit
+    ctx.fillStyle = '#00ff00';
+    ctx.font = '15px "Press Start 2P"';
+    let valueText = attr.value;
+    // Calculate if text fits, if not, shrink font or truncate
+    const maxValueWidth = boxWidth - 180;
+    ctx.save();
+    let fontSize = 15;
+    ctx.font = `${fontSize}px "Press Start 2P"`;
+    while (ctx.measureText(valueText).width > maxValueWidth && fontSize > 10) {
+      fontSize--;
+      ctx.font = `${fontSize}px "Press Start 2P"`;
+    }
+    if (fontSize < 11) {
+      valueText = valueText.substring(0, 18) + '...';
+      ctx.font = `11px "Press Start 2P"`;
+    }
+    ctx.fillText(valueText, rightX + boxWidth - 15 - ctx.measureText(valueText).width, y + 33);
+    ctx.restore();
+  }
+  
+  // Calculate bottom position for match result
+  const attrsBottom = currentY + (attrs.length * (boxHeight + spacing)) + 30;
+  const matchY = Math.max(attrsBottom + 30, height - 130);
+  
+  // ========== MATCH RESULT ==========
+  const matches = findMatchesForNFT(currentNFT);
+  const matchBoxWidth = width - rightX - 80;
+  const matchBoxHeight = 85;
+  
+  ctx.fillStyle = matches.length > 0 ? '#006400' : '#404040';
+  ctx.fillRect(rightX, matchY, matchBoxWidth, matchBoxHeight);
+  ctx.strokeStyle = matches.length > 0 ? '#00ff00' : '#808080';
+  ctx.strokeRect(rightX, matchY, matchBoxWidth, matchBoxHeight);
+  
+  ctx.fillStyle = '#ffff00';
+  ctx.font = '18px "Press Start 2P"';
+  ctx.textAlign = 'center';
+  const centerX = rightX + matchBoxWidth / 2;
+  
+  if (matches.length > 0) {
+    ctx.fillText(`🎯 MATCH FOUND! ${matches.length} identical tokens`, centerX, matchY + 38);
+    ctx.font = '13px "Press Start 2P"';
+    ctx.fillStyle = '#00ff00';
+    const matchStr = matches.slice(0, 8).map(n => '#' + n).join(', ');
+    ctx.fillText(matchStr + (matches.length > 8 ? ` +${matches.length-8} more` : ''), centerX, matchY + 68);
+  } else {
+    ctx.fillText('❌ NO MATCH FOUND IN CRYPTO PUNKS', centerX, matchY + 48);
+  }
+  
+  // ========== FOOTER ==========
+  ctx.fillStyle = '#8888aa';
+  ctx.font = '12px "Press Start 2P"';
+  ctx.textAlign = 'center';
+  ctx.fillText('404 PUNKS // UNIVERSAL NFT GENERATOR', width / 2, height - 35);
+  
+  return canvas.toDataURL('image/png');
+}
+
+async function downloadBanner() {
+  if (!currentNFT) {
+    showToast('Create an NFT first!');
+    return;
+  }
+  showToast('Generating YouTube banner (2560x1440)...');
+  try {
+    const bannerDataUrl = await generateBanner();
+    const link = document.createElement('a');
+    link.download = `${currentNFT.name.replace(/\s/g,'_')}_BANNER.png`;
+    link.href = bannerDataUrl;
+    link.click();
+    showToast('Banner downloaded! 2560x1440');
+  } catch(err) {
+    console.error(err);
+    showToast('Error generating banner');
+  }
 }
 
 // ============================================================
@@ -567,33 +753,6 @@ function updateStats() {
   }
 }
 
-function downloadNFTImage() {
-  if (!currentNFT) return;
-  const link = document.createElement('a');
-  link.download = `${currentNFT.name.replace(/\s/g,'_')}.png`;
-  link.href = currentNFT.image;
-  link.click();
-  showToast('PNG saved!');
-}
-
-function downloadNFTJSON() {
-  if (!currentNFT) return;
-  const meta = {
-    name: currentNFT.name,
-    description: currentNFT.description,
-    image: `${currentNFT.name.replace(/\s/g,'_')}.png`,
-    attributes: currentNFT.attributes
-  };
-  const blob = new Blob([JSON.stringify(meta, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.download = `${currentNFT.name.replace(/\s/g,'_')}.json`;
-  link.href = url;
-  link.click();
-  URL.revokeObjectURL(url);
-  showToast('JSON saved!');
-}
-
 function openEditor() {
   if (!currentNFT) return;
   renderLayersEditor();
@@ -649,8 +808,7 @@ window.App = {
   addLayerToNFT,
   moveLayer,
   deleteLayer,
-  downloadNFTImage,
-  downloadNFTJSON,
+  downloadBanner,
   openEditor,
   closeEditor
 };
