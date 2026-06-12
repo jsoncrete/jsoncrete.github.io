@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>404 PUNKS // NFT GENERATOR</title>
+  <title>404 PUNKS</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -746,9 +746,9 @@
 
         <!-- CTA ROW -->
         <div class="social-row" style="justify-content:center;">
-          <button onclick="App.showGenerator()" class="w95-btn btn-green" style="font-size:9px; padding:10px 20px;">🎨 MAKE YOUR PUNK</button>
-          <button onclick="window.open('https://opensea.io/collection/404-punks-lab-970357845','_blank')" class="w95-btn btn-blue" style="font-size:9px; padding:10px 20px;">💰 MINT ON OPENSEA</button>
-          <button onclick="window.open('https://x.com/404punklab','_blank')" class="w95-btn btn-black" style="font-size:9px; padding:10px 20px;">🐦 @404PUNKLAB</button>
+          <button onclick="App.showGenerator()" class="w95-btn btn-green" style="font-size:9px; padding:10px 20px;">🎨 MAKE R PUNK</button>
+          <button onclick="window.open('https://opensea.io/collection/404-punks-lab-970357845','_blank')" class="w95-btn btn-blue" style="font-size:9px; padding:10px 20px;">MINT ON OPENSEA</button>
+          <button onclick="window.open('https://x.com/404punklab','_blank')" class="w95-btn btn-black" style="font-size:9px; padding:10px 20px;">404PUNKLAB</button>
           <button onclick="window.open('https://discord.gg/5Uy4dYb9T','_blank')" class="w95-btn btn-discord" style="font-size:9px; padding:10px 20px;">💬 DISCORD</button>
         </div>
 
@@ -823,7 +823,7 @@
         <!-- BOTTOM CTA -->
         <div style="text-align:center; padding: 10px 0 4px 0;">
           <div style="font-family:'Press Start 2P',monospace; font-size:9px; color:#000080; margin-bottom:12px;">💬 JOIN OUR COMMUNITY</div>
-          <p style="font-family:'VT323',monospace; font-size:15px; margin-bottom:8px;">Discord: <a href="https://discord.gg/5Uy4dYb9T" target="_blank" style="color:#000080; text-decoration:underline;">https://discord.gg/5Uy4dYb9T</a></p>
+          <p style="font-family:'VT323',monospace; font-size:15px; margin-bottom:8px;">Discord: <a href="https://discord.gg/5Uy4dYb9T" target="_blank" style="color:#000080; text-decoration:underline;">discord</a></p>
           <p style="font-family:'VT323',monospace; font-size:14px; color:#555;">Become part of the community, meet other collectors, and stay updated on future announcements.</p>
         </div>
       </div>
@@ -927,7 +927,7 @@
                   <hr class="w95-divider" style="margin-top:12px;">
 
                   <!-- ACTION BUTTONS -->
-                  <button onclick="App.downloadBanner()" class="dl-btn">X POST BANNER</button>
+                  <button onclick="App.downloadBanner()" class="dl-btn">X POST BANNER ⬇ </button>
                   <button onclick="App.shareBannerToX()" class="x-btn">X POST</button>
                   <button onclick="App.openEditor()" class="w95-btn" style="width:100%; margin-top:8px; background:#000080; color:#fff; font-size:8px;">✏️ EDIT THIS NFT</button>
 
@@ -1841,7 +1841,7 @@ async function shareBannerToX() {
     const mText = matches.length>0
       ? `🎯 MATCH FOUND! ${matches.length} identical tokens in CryptoPunks!`
       : `✨ Fresh unique 404 PUNK generated!`;
-    const text = `🟦 ${currentNFT.name}\n\n${mText}\n\n🔗 opensea.io/collection/404-punks-lab-970357845\n⬛ Follow @404punklab\n\n#404PUNKS #NFT #CryptoPunks`;
+    const text = `🟦 ${currentNFT.name}\n\n${mText}\n\n🔗 opensea.io/collection/404-punks-lab-970357845\n Follow @404punklab\n\n#404PUNKS #NFT #CryptoPunks`;
     if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
       try { await navigator.share({title:'404 PUNKS NFT', text, files:[file]}); showToast('✅ Shared!'); return; }
       catch(e) {}
