@@ -44,6 +44,10 @@
     .gender-badge-f { background: #ff88cc; color: #fff; font-family: 'Press Start 2P', monospace; font-size: 6px; padding: 2px 6px; border-radius: 2px; }
     .download-banner-btn { background: #000080; border: 3px solid; border-top-color: #4444ff; border-left-color: #4444ff; border-right-color: #000044; border-bottom-color: #000044; padding: 12px 24px; font-family: 'Press Start 2P', monospace; font-size: 11px; cursor: pointer; color: #fff; width: 100%; margin-top: 10px; }
     .download-banner-btn:active { border-top-color: #000044; border-left-color: #000044; border-right-color: #4444ff; border-bottom-color: #4444ff; transform: translate(2px, 2px); }
+    .share-btn { background: #1DA1F2; border: 3px solid; border-top-color: #6ec8ff; border-left-color: #6ec8ff; border-right-color: #0e6ea5; border-bottom-color: #0e6ea5; padding: 12px 24px; font-family: 'Press Start 2P', monospace; font-size: 11px; cursor: pointer; color: #fff; width: 100%; margin-top: 10px; }
+    .share-btn:active { border-top-color: #0e6ea5; border-left-color: #0e6ea5; border-right-color: #6ec8ff; border-bottom-color: #6ec8ff; transform: translate(2px, 2px); }
+    .x-post-banner-btn { background: #000000; border: 3px solid; border-top-color: #444444; border-left-color: #444444; border-right-color: #222222; border-bottom-color: #222222; padding: 12px 24px; font-family: 'Press Start 2P', monospace; font-size: 10px; cursor: pointer; color: #fff; width: 100%; margin-top: 10px; }
+    .x-post-banner-btn:active { border-top-color: #222222; border-left-color: #222222; border-right-color: #444444; border-bottom-color: #444444; transform: translate(2px, 2px); }
   </style>
 </head>
 <body>
@@ -85,6 +89,9 @@
             
             <!-- BANNER DOWNLOAD BUTTON -->
             <button id="download-banner-btn" onclick="App.downloadBanner()" class="download-banner-btn">📺 DOWNLOAD YOUTUBE BANNER (2560x1440)</button>
+            
+            <!-- X POST WITH BANNER BUTTON -->
+            <button id="x-post-banner-btn" onclick="App.shareBannerToX()" class="x-post-banner-btn">🐦 X POST WITH BANNER</button>
             
             <!-- EDIT BUTTON -->
             <div style="margin-top: 10px;">
@@ -445,7 +452,6 @@ async function generateBanner() {
     ctx.fillStyle = '#00ff00';
     ctx.font = '15px "Press Start 2P"';
     let valueText = attr.value;
-    // Calculate if text fits, if not, shrink font or truncate
     const maxValueWidth = boxWidth - 180;
     ctx.save();
     let fontSize = 15;
@@ -516,6 +522,77 @@ async function downloadBanner() {
   } catch(err) {
     console.error(err);
     showToast('Error generating banner');
+  }
+}
+
+// ============================================================
+// SHARE BANNER TO X (TWITTER) - POST WITH BANNER IMAGE
+// ============================================================
+async function shareBannerToX() {
+  if (!currentNFT) {
+    showToast('Create an NFT first!');
+    return;
+  }
+  
+  showToast('Preparing banner for X post...');
+  
+  try {
+    // Generate banner image
+    const bannerDataUrl = await generateBanner();
+    
+    // Convert data URL to blob
+    const response = await fetch(bannerDataUrl);
+    const blob = await response.blob();
+    const file = new File([blob], `${currentNFT.name.replace(/\s/g,'_')}_BANNER.png`, { type: 'image/png' });
+    
+    // Create share text for X (without attributes list)
+    const matches = findMatchesForNFT(currentNFT);
+    const matchText = matches.length > 0 
+      ? `🎯 MATCH FOUND! ${matches.length} identical tokens in CryptoPunks!` 
+      : `✨ Fresh 404 PUNKS NFT generated!`;
+    
+    const shareText = `🟦 ${currentNFT.name}\n\n${matchText}\n\n⬛ Follow @404punklab\n⚡ Join the community for future drops!\n\n#404PUNKS #NFT #CryptoPunks`;
+    
+    // Use Web Share API if available (mobile)
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: '404 PUNKS NFT',
+          text: shareText,
+          files: [file]
+        });
+        showToast('Shared successfully!');
+        return;
+      } catch (shareErr) {
+        console.log('Share cancelled:', shareErr);
+      }
+    }
+    
+    // For desktop: Create a temporary download and instruct user
+    // Alternative: Open X.com with text and let user upload manually
+    const encodedText = encodeURIComponent(shareText);
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+    window.open(twitterUrl, '_blank', 'width=600,height=500');
+    
+    // Also trigger download so user can attach the banner
+    const downloadLink = document.createElement('a');
+    downloadLink.download = `${currentNFT.name.replace(/\s/g,'_')}_BANNER.png`;
+    downloadLink.href = bannerDataUrl;
+    downloadLink.click();
+    
+    showToast('X opened! Download banner saved - attach it to your post.', 5000);
+    
+  } catch(err) {
+    console.error('Share error:', err);
+    // Ultimate fallback: text-only share
+    const matches = findMatchesForNFT(currentNFT);
+    const matchText = matches.length > 0 
+      ? `MATCH FOUND! ${matches.length} identical tokens!` 
+      : `Fresh 404 PUNKS NFT generated!`;
+    const fallbackText = `${currentNFT.name}\n\n${matchText}\n\nFollow @404punklab for future drops!\n\n#404PUNKS #NFT`;
+    const encodedText = encodeURIComponent(fallbackText);
+    window.open(`https://twitter.com/intent/tweet?text=${encodedText}`, '_blank');
+    showToast('X opened! Add your banner image manually.', 4000);
   }
 }
 
@@ -809,6 +886,7 @@ window.App = {
   moveLayer,
   deleteLayer,
   downloadBanner,
+  shareBannerToX,
   openEditor,
   closeEditor
 };
