@@ -1,653 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NFT ZIP Downloader (1–6969)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background: #0d1117;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #f0f6fc;
-            padding: 30px 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            max-width: 900px;
-            width: 100%;
-            background: #161b22;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-            border: 1px solid #30363d;
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 500;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        h1 .badge-range {
-            font-size: 0.9rem;
-            background: #238636;
-            padding: 2px 14px;
-            border-radius: 40px;
-            font-weight: 400;
-        }
-
-        .subtitle {
-            color: #8b949e;
-            margin-bottom: 30px;
-            padding-left: 16px;
-            border-left: 3px solid #238636;
-            font-size: 0.95rem;
-        }
-
-        /* ---- stats row ---- */
-        .stats {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-        }
-        .stat-card {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            padding: 12px 20px;
-            min-width: 130px;
-            text-align: center;
-        }
-        .stat-card .label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #8b949e;
-            margin-bottom: 4px;
-        }
-        .stat-card .value {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #f0f6fc;
-        }
-        .stat-card .value.green { color: #56d364; }
-        .stat-card .value.red   { color: #f85149; }
-
-        /* ---- range inputs ---- */
-        .range-row {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .range-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .range-group label {
-            font-size: 12px;
-            color: #8b949e;
-        }
-        .range-group input[type="number"] {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            color: #f0f6fc;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 0.95rem;
-            width: 110px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .range-group input[type="number"]:focus { border-color: #58a6ff; }
-
-        /* ---- buttons ---- */
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .btn {
-            background: #238636;
-            border: none;
-            color: #fff;
-            padding: 12px 28px;
-            border-radius: 40px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(35,134,54,0.3);
-        }
-        .btn:hover:not(:disabled) {
-            background: #2ea043;
-            transform: scale(1.02);
-            box-shadow: 0 6px 18px rgba(35,134,54,0.4);
-        }
-        .btn:active:not(:disabled) { transform: scale(0.99); }
-        .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-
-        .btn-secondary {
-            background: #21262d;
-            box-shadow: none;
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background: #2d333b;
-            box-shadow: none;
-        }
-
-        .btn-danger {
-            background: #b91c1c;
-            box-shadow: 0 4px 12px rgba(185,28,28,0.3);
-        }
-        .btn-danger:hover:not(:disabled) {
-            background: #dc2626;
-            box-shadow: 0 6px 18px rgba(185,28,28,0.4);
-        }
-
-        /* ---- progress ---- */
-        #progressContainer {
-            width: 100%;
-            height: 10px;
-            background: #21262d;
-            border-radius: 10px;
-            margin: 0 0 12px;
-            overflow: hidden;
-            display: none;
-        }
-        #progressBar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #238636, #56d364);
-            border-radius: 10px;
-            transition: width 0.25s ease;
-        }
-
-        #statusText {
-            color: #8b949e;
-            font-size: 0.9rem;
-            min-height: 24px;
-            margin-bottom: 24px;
-        }
-
-        /* ---- error log ---- */
-        #errorLog {
-            display: none;
-            background: #0d1117;
-            border: 1px solid #f85149;
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            max-height: 140px;
-            overflow-y: auto;
-        }
-        #errorLog p {
-            font-size: 12px;
-            color: #f85149;
-            line-height: 1.6;
-        }
-
-        /* ---- preview gallery ---- */
-        #previewGallery {
-            display: none;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 6px;
-            margin-top: 20px;
-            max-height: 420px;
-            overflow-y: auto;
-            padding: 8px 4px;
-            border-top: 1px solid #30363d;
-        }
-        #previewGallery img {
-            width: 100%;
-            aspect-ratio: 1/1;
-            object-fit: cover;
-            border-radius: 6px;
-            background: #0d1117;
-            border: 1px solid #21262d;
-            transition: transform 0.15s;
-        }
-        #previewGallery img:hover { transform: scale(1.05); }
-        #previewGallery .placeholder {
-            background: #0d1117;
-            border-radius: 6px;
-            aspect-ratio: 1/1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #484f58;
-            border: 1px dashed #30363d;
-        }
-
-        /* ---- footer ---- */
-        .footer {
-            margin-top: 28px;
-            color: #484f58;
-            font-size: 0.78rem;
-            text-align: center;
-        }
-        .pill {
-            background: #1c2333;
-            padding: 2px 10px;
-            border-radius: 20px;
-            color: #58a6ff;
-            font-size: 0.78rem;
-        }
-
-        @media (max-width: 600px) {
-            .container { padding: 20px; }
-            h1 { font-size: 1.5rem; }
-            .btn { width: 100%; justify-content: center; }
-        }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NFT Zip Downloader (1–6969)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;font-family:'Segoe UI',sans-serif;color:#f0f6fc;padding:28px 16px;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.container{max-width:920px;width:100%;background:#161b22;border-radius:16px;padding:34px;border:1px solid #30363d;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+h1{font-size:1.8rem;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.badge{font-size:.8rem;background:#238636;padding:3px 14px;border-radius:40px;font-weight:400}
+.sub{color:#8b949e;margin-bottom:22px;padding-left:14px;border-left:3px solid #238636;font-size:.92rem;line-height:1.6}
+.warn{background:#2a1f0a;border:1px solid #9e6a03;border-radius:8px;padding:12px 16px;font-size:.83rem;color:#e3b341;margin-bottom:20px;line-height:1.6}
+.warn strong{color:#f0a528}
+/* Settings */
+.settings-box{background:#1c2333;border-radius:10px;padding:16px;margin-bottom:18px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.settings-box label{font-size:.81rem;color:#8b949e;display:block;margin-bottom:4px}
+.settings-box input[type=number]{background:#0d1117;color:#f0f6fc;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:.92rem;width:86px}
+.settings-box input:focus{outline:none;border-color:#238636}
+.hint{flex:1;font-size:.78rem;color:#8b949e;align-self:center;padding-top:10px;line-height:1.5;min-width:160px}
+/* Buttons */
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.btn{border:none;color:#fff;padding:11px 24px;border-radius:40px;font-size:.94rem;font-weight:600;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:8px}
+.btn-green{background:#238636}
+.btn-green:hover:not(:disabled){background:#2ea043;transform:scale(1.02)}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-gray{background:#21262d}
+.btn-gray:hover:not(:disabled){background:#30363d}
+.btn-gray:disabled{opacity:.4;cursor:not-allowed}
+.btn-red{background:#b91c1c}
+.btn-red:hover:not(:disabled){background:#dc2626}
+/* Stats */
+.stats-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:#1c2333;border-radius:8px;padding:10px 12px;flex:1;min-width:70px;text-align:center}
+.stat .val{font-size:1.35rem;font-weight:600}
+.stat .lbl{font-size:.7rem;color:#8b949e;margin-top:2px}
+.g .val{color:#56d364} .r .val{color:#f85149} .b .val{color:#58a6ff} .y .val{color:#e3b341}
+/* Progress */
+.prog-wrap{width:100%;height:10px;background:#21262d;border-radius:10px;overflow:hidden;margin-bottom:6px;display:none}
+.prog-bar{height:100%;width:0%;border-radius:10px;transition:width .2s}
+#mainBar{background:linear-gradient(90deg,#238636,#56d364)}
+#subBar{background:#58a6ff}
+#retryBar{background:#e3b341}
+#statusText{font-size:.87rem;min-height:20px;margin-bottom:4px;color:#8b949e}
+#subStatus{font-size:.78rem;min-height:18px;margin-bottom:14px;color:#484f58}
+/* Batch grid */
+.batch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:7px;margin-top:6px;max-height:280px;overflow-y:auto}
+.bc{border-radius:8px;border:1px solid #30363d;background:#1c2333;padding:9px 7px;text-align:center;font-size:.78rem;transition:all .15s}
+.bc.active{background:#0e2215;border-color:#56d364;animation:pulse 1s infinite alternate}
+.bc.done{background:#0e2a15;border-color:#238636;color:#56d364}
+.bc.failed{background:#2a0e0e;border-color:#f85149;color:#f85149}
+.bc.retrying{background:#2a1f0a;border-color:#e3b341;color:#e3b341;animation:pulse2 .8s infinite alternate}
+.bc .bn{font-weight:600;font-size:.91rem}
+.bc .br{color:#8b949e;font-size:.7rem;margin-top:1px}
+.bc.done .br{color:#4cba5a} .bc.failed .br,.bc.retrying .br{color:inherit}
+.bc .bs{font-size:.68rem;margin-top:2px;color:#8b949e}
+.bc.done .bs{color:#56d364} .bc.failed .bs{color:#f85149} .bc.retrying .bs{color:#e3b341}
+@keyframes pulse{from{border-color:#238636}to{border-color:#56d364}}
+@keyframes pulse2{from{border-color:#9e6a03}to{border-color:#e3b341}}
+.footer{margin-top:20px;color:#484f58;font-size:.76rem;text-align:center}
+.pill{background:#1c2333;padding:2px 9px;border-radius:20px;color:#58a6ff;font-size:.76rem}
+@media(max-width:600px){.container{padding:16px}h1{font-size:1.3rem}.btn{width:100%;justify-content:center}}
+</style>
 </head>
 <body>
-
 <div class="container">
+  <h1>📦 NFT Zip Downloader <span class="badge">1 – 6969</span></h1>
+  <p class="sub">Downloads all 6969 NFT images from Arweave — smart retry system ensures 0 failures.</p>
 
-    <h1>&#x1F4E6; NFT ZIP Downloader <span class="badge-range">1 – 6969</span></h1>
-    <p class="subtitle">Downloads all images from Arweave storage and packages them into a single ZIP file.</p>
+  <div class="warn">
+    ⚠️ <strong>How it works:</strong> Downloads in batches of 500. Each failed image is automatically
+    retried up to <strong>10 times</strong> with exponential backoff. A final <strong>retry pass</strong>
+    re-attempts all remaining failures until every image is downloaded successfully.
+  </div>
 
-    <!-- Live stats -->
-    <div class="stats">
-        <div class="stat-card">
-            <div class="label">Total Images</div>
-            <div class="value" id="statTotal">6969</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Downloaded</div>
-            <div class="value green" id="statSuccess">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Failed</div>
-            <div class="value red" id="statFail">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Remaining</div>
-            <div class="value" id="statRemaining">6969</div>
-        </div>
-    </div>
+  <div class="settings-box">
+    <div><label>Images per ZIP</label><input type="number" id="batchSize" value="500" min="100" max="1000" step="100"/></div>
+    <div><label>Concurrent fetches</label><input type="number" id="concurrency" value="5" min="1" max="20"/></div>
+    <div><label>Max retries per image</label><input type="number" id="maxRetries" value="10" min="3" max="20"/></div>
+    <div><label>Retry delay (ms)</label><input type="number" id="retryDelay" value="2000" min="500" max="10000" step="500"/></div>
+    <p class="hint">Lower concurrency (3–5) reduces Arweave rate-limit errors. Higher retries &amp; delay = more reliable.</p>
+  </div>
 
-    <!-- Custom range -->
-    <div class="range-row">
-        <div class="range-group">
-            <label for="startNum">Start (#)</label>
-            <input type="number" id="startNum" min="1" max="6969" value="1" />
-        </div>
-        <div class="range-group">
-            <label for="endNum">End (#)</label>
-            <input type="number" id="endNum" min="1" max="6969" value="6969" />
-        </div>
-        <div class="range-group">
-            <label for="concurrency">Concurrent downloads</label>
-            <input type="number" id="concurrency" min="5" max="100" value="30" />
-        </div>
-        <div class="range-group">
-            <label for="retries">Retries per image</label>
-            <input type="number" id="retries" min="0" max="5" value="2" />
-        </div>
-    </div>
+  <div class="controls">
+    <button id="startBtn" class="btn btn-green" onclick="startAll()">⬇️ Start Download (6969 images)</button>
+    <button id="cancelBtn" class="btn btn-red" onclick="doCancel()" style="display:none">⏹ Cancel</button>
+    <button id="resetBtn" class="btn btn-gray" onclick="doReset()" style="display:none">🔄 Reset</button>
+  </div>
 
-    <!-- Buttons -->
-    <div class="controls">
-        <button id="downloadBtn" class="btn">&#x2B07;&#xFE0F; Download ZIP</button>
-        <button id="cancelBtn"   class="btn btn-danger" disabled>&#x274C; Cancel</button>
-        <button id="previewBtn"  class="btn btn-secondary">&#x1F441;&#xFE0F; Preview (first 100)</button>
-    </div>
+  <div class="stats-row">
+    <div class="stat g"><div class="val" id="sOk">0</div><div class="lbl">Downloaded</div></div>
+    <div class="stat r"><div class="val" id="sFail">0</div><div class="lbl">Failed</div></div>
+    <div class="stat y"><div class="val" id="sRetry">0</div><div class="lbl">Retrying</div></div>
+    <div class="stat b"><div class="val" id="sZip">0</div><div class="lbl">ZIPs Saved</div></div>
+    <div class="stat"><div class="val" id="sTotal">6969</div><div class="lbl">Total</div></div>
+  </div>
 
-    <!-- Progress bar -->
-    <div id="progressContainer"><div id="progressBar"></div></div>
+  <div class="prog-wrap" id="mainPW"><div class="prog-bar" id="mainBar"></div></div>
+  <div class="prog-wrap" id="subPW"><div class="prog-bar" id="subBar"></div></div>
+  <div class="prog-wrap" id="retryPW"><div class="prog-bar" id="retryBar"></div></div>
+  <div id="statusText">✅ Ready — click Start Download to begin.</div>
+  <div id="subStatus"></div>
 
-    <!-- Status line -->
-    <div id="statusText">&#x2705; Ready. Press Download ZIP to start.</div>
-
-    <!-- Error log (shown only when failures occur) -->
-    <div id="errorLog"></div>
-
-    <!-- Preview gallery -->
-    <div id="previewGallery"></div>
+  <div id="batchGrid" class="batch-grid"></div>
 </div>
 
-<div class="footer">
-    Each image is saved as <span class="pill">1.png</span> &hellip; <span class="pill">6969.png</span>
-    &nbsp;&bull;&nbsp; Images hosted on Arweave (IPFS-compatible permanent storage)
-</div>
+<div class="footer">Files saved as <span class="pill">1.png</span> → <span class="pill">6969.png</span> inside each ZIP</div>
 
 <script>
-(function () {
-    "use strict";
+(function(){
+const BASE='https://qiydg7uxbfyhvl4jfhmlsqrzcjirat6w7xpyjiogwuipszliswoq.arweave.net/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/';
+const TOTAL=6969;
 
-    /* ---- Config ---- */
-    const BASE_URL = "https://qiydg7uxbfyhvl4jfhmlsqrzcjirat6w7xpyjiogwuipszliswoq.arweave.net/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/";
-    const MAX_TOTAL = 6969;
+let running=false,cancelFlag=false;
+let gOk=0,gFail=0,gRetrying=0,gZip=0;
 
-    /* ---- DOM refs ---- */
-    const downloadBtn   = document.getElementById("downloadBtn");
-    const cancelBtn     = document.getElementById("cancelBtn");
-    const previewBtn    = document.getElementById("previewBtn");
-    const progressWrap  = document.getElementById("progressContainer");
-    const progressBar   = document.getElementById("progressBar");
-    const statusText    = document.getElementById("statusText");
-    const errorLog      = document.getElementById("errorLog");
-    const previewGallery= document.getElementById("previewGallery");
-    const statSuccess   = document.getElementById("statSuccess");
-    const statFail      = document.getElementById("statFail");
-    const statRemaining = document.getElementById("statRemaining");
-    const statTotal     = document.getElementById("statTotal");
-    const startInput    = document.getElementById("startNum");
-    const endInput      = document.getElementById("endNum");
-    const concInput     = document.getElementById("concurrency");
-    const retriesInput  = document.getElementById("retries");
+const $=id=>document.getElementById(id);
+const setStatus=t=>$('statusText').textContent=t;
+const setSub=t=>$('subStatus').textContent=t;
 
-    /* ---- State ---- */
-    let abortController = null;
-    let isDownloading   = false;
-    let previewVisible  = false;
-    let errors          = [];
+function setMainProg(p){$('mainPW').style.display='block';$('mainBar').style.width=Math.min(100,p).toFixed(1)+'%'}
+function setSubProg(p){$('subPW').style.display='block';$('subBar').style.width=Math.min(100,p).toFixed(1)+'%'}
+function setRetryProg(p){$('retryPW').style.display='block';$('retryBar').style.width=Math.min(100,p).toFixed(1)+'%'}
 
-    /* =========================================================
-       Helper: fetch one image with retry + abort support
-    ========================================================= */
-    async function fetchWithRetry(url, maxRetries, signal) {
-        let lastErr;
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            if (signal.aborted) throw new DOMException("Aborted", "AbortError");
-            try {
-                const res = await fetch(url, { signal });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const blob = await res.blob();
-                if (blob.size === 0) throw new Error("Empty response");
-                return blob;
-            } catch (err) {
-                if (err.name === "AbortError") throw err;
-                lastErr = err;
-                if (attempt < maxRetries) {
-                    /* Exponential back-off: 500 ms, 1000 ms, 2000 ms … */
-                    await sleep(500 * Math.pow(2, attempt));
-                }
-            }
-        }
-        throw lastErr;
+function updateStats(){
+  $('sOk').textContent=gOk;
+  $('sFail').textContent=gFail;
+  $('sRetry').textContent=gRetrying;
+  $('sZip').textContent=gZip;
+  setMainProg((gOk/TOTAL)*100);
+}
+
+// Smart fetch: tries multiple URL variants, exponential backoff
+async function smartFetch(id, maxRetries, baseDelay){
+  // Primary URL variants to try
+  const urls=[
+    `${BASE}${id}.png`,
+    `https://arweave.net/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/${id}.png`,
+    `https://gateway.irys.xyz/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/${id}.png`,
+  ];
+
+  for(let attempt=0;attempt<maxRetries;attempt++){
+    if(cancelFlag) return null;
+    const url=urls[attempt % urls.length];
+    try{
+      const ctrl=new AbortController();
+      const timer=setTimeout(()=>ctrl.abort(),30000);
+      const r=await fetch(url,{signal:ctrl.signal,cache:'no-store'});
+      clearTimeout(timer);
+      if(r.ok) return await r.blob();
+      // 429 = rate limited, wait longer
+      if(r.status===429||r.status===503){
+        const wait=baseDelay*(attempt+1)*2;
+        setSub(`Image #${id}: rate limited, waiting ${(wait/1000).toFixed(1)}s…`);
+        await sleep(wait);
+        continue;
+      }
+      throw new Error('HTTP '+r.status);
+    }catch(e){
+      if(cancelFlag) return null;
+      if(attempt<maxRetries-1){
+        const wait=Math.min(baseDelay*(attempt+1),30000);
+        await sleep(wait);
+      }
     }
+  }
+  return null; // exhausted all retries
+}
 
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
-    /* =========================================================
-       Helper: run tasks with a concurrency limit
-    ========================================================= */
-    async function runWithConcurrency(tasks, limit, onDone) {
-        const queue = [...tasks];
-        let active  = 0;
-        let idx     = 0;
-
-        return new Promise((resolve, reject) => {
-            function next() {
-                while (active < limit && idx < queue.length) {
-                    const task = queue[idx++];
-                    active++;
-                    task().then(result => {
-                        active--;
-                        onDone(result);
-                        next();
-                        if (active === 0 && idx >= queue.length) resolve();
-                    }).catch(err => {
-                        /* Never called with AbortError because tasks swallow it */
-                        active--;
-                        onDone({ ok: false, err });
-                        next();
-                        if (active === 0 && idx >= queue.length) resolve();
-                    });
-                }
-            }
-            if (queue.length === 0) { resolve(); return; }
-            next();
-        });
-    }
-
-    /* =========================================================
-       Download all images and produce a ZIP
-    ========================================================= */
-    async function downloadAllAsZip() {
-        if (isDownloading) return;
-
-        /* --- Validate inputs --- */
-        const start      = Math.max(1, Math.min(MAX_TOTAL, parseInt(startInput.value, 10) || 1));
-        const end        = Math.max(start, Math.min(MAX_TOTAL, parseInt(endInput.value, 10) || MAX_TOTAL));
-        const concurrency= Math.max(1, Math.min(100, parseInt(concInput.value, 10) || 30));
-        const maxRetries = Math.max(0, Math.min(5,   parseInt(retriesInput.value, 10) || 2));
-        const total      = end - start + 1;
-
-        startInput.value    = start;
-        endInput.value      = end;
-        concInput.value     = concurrency;
-        retriesInput.value  = maxRetries;
-        statTotal.textContent = total;
-
-        /* --- Reset state --- */
-        isDownloading = true;
-        errors        = [];
-        let successCount = 0;
-        let failCount    = 0;
-
-        abortController = new AbortController();
-        const signal = abortController.signal;
-
-        downloadBtn.disabled = true;
-        cancelBtn.disabled   = false;
-        progressWrap.style.display = "block";
-        progressBar.style.width    = "0%";
-        errorLog.style.display     = "none";
-        errorLog.innerHTML         = "";
-
-        updateStats(successCount, failCount, total);
-        setStatus("⏳ Preparing…");
-
-        const zip = new JSZip();
-
-        /* --- Build task list --- */
-        const tasks = [];
-        for (let i = start; i <= end; i++) {
-            const num = i;
-            tasks.push(() => {
-                const url = `${BASE_URL}${num}.png`;
-                return fetchWithRetry(url, maxRetries, signal)
-                    .then(blob => { zip.file(`${num}.png`, blob); return { ok: true, num }; })
-                    .catch(err => {
-                        if (err.name === "AbortError") return { ok: false, aborted: true, num };
-                        return { ok: false, num, err };
-                    });
-            });
-        }
-
-        /* --- Execute with concurrency limit --- */
-        let aborted = false;
-
-        await runWithConcurrency(tasks, concurrency, result => {
-            if (result.aborted) { aborted = true; return; }
-            if (result.ok) {
-                successCount++;
-            } else {
-                failCount++;
-                const msg = result.err ? result.err.message : "Unknown error";
-                errors.push(`#${result.num}: ${msg}`);
-            }
-            const done = successCount + failCount;
-            updateProgress(done, total);
-            updateStats(successCount, failCount, total - done);
-            setStatus(`Downloading… ${done} / ${total}  —  ✅ ${successCount} saved, ❌ ${failCount} failed`);
-        });
-
-        /* --- Wrap up --- */
-        if (aborted) {
-            setStatus(`⛔ Download cancelled. ${successCount} images collected before stopping.`);
-            /* Still offer a partial ZIP if anything was downloaded */
-            if (successCount === 0) {
-                cleanup();
-                return;
-            }
-        }
-
-        setStatus("⏳ Building ZIP file… (this may take a moment)");
-
-        try {
-            const zipBlob = await zip.generateAsync(
-                { type: "blob", compression: "STORE" },
-                meta => {
-                    progressBar.style.width = `${meta.percent.toFixed(0)}%`;
-                    setStatus(`Compressing ZIP… ${meta.percent.toFixed(0)}%`);
-                }
-            );
-
-            const fileName = total === MAX_TOTAL
-                ? `NFT_1_to_${MAX_TOTAL}.zip`
-                : `NFT_${start}_to_${end}.zip`;
-
-            saveAs(zipBlob, fileName);
-            progressBar.style.width = "100%";
-
-            if (errors.length > 0) {
-                showErrors();
-                setStatus(`✅ ZIP downloaded! ${successCount} images saved. ${failCount} failed — see error log below.`);
-            } else {
-                setStatus(`✅ Done! All ${successCount} images downloaded successfully.`);
-            }
-        } catch (zipErr) {
-            setStatus(`❌ Failed to generate ZIP: ${zipErr.message}`);
-        }
-
-        cleanup();
-    }
-
-    /* =========================================================
-       Cancel
-    ========================================================= */
-    function cancelDownload() {
-        if (abortController) {
-            abortController.abort();
-            setStatus("⛔ Cancelling… please wait.");
-        }
-        cancelBtn.disabled = true;
-    }
-
-    /* =========================================================
-       Preview
-    ========================================================= */
-    function togglePreview() {
-        if (previewVisible) {
-            previewGallery.style.display = "none";
-            previewGallery.innerHTML = "";
-            previewVisible = false;
-            previewBtn.textContent = "👁️ Preview (first 100)";
-            return;
-        }
-
-        previewGallery.style.display = "grid";
-        previewGallery.innerHTML = "";
-
-        const count = Math.min(100, MAX_TOTAL);
-        for (let i = 1; i <= count; i++) {
-            const img = document.createElement("img");
-            img.src     = `${BASE_URL}${i}.png`;
-            img.alt     = `NFT #${i}`;
-            img.loading = "lazy";
-            img.title   = `#${i}`;
-            img.onerror = function () {
-                const div = document.createElement("div");
-                div.className = "placeholder";
-                div.textContent = `#${i}`;
-                this.replaceWith(div);
-            };
-            previewGallery.appendChild(img);
-        }
-
-        previewVisible = true;
-        previewBtn.textContent = "❌ Close Preview";
-        setStatus(`Preview showing first ${count} images.`);
-    }
-
-    /* =========================================================
-       UI helpers
-    ========================================================= */
-    function updateProgress(current, total) {
-        const pct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
-        progressBar.style.width = `${pct.toFixed(1)}%`;
-    }
-
-    function updateStats(success, fail, remaining) {
-        statSuccess.textContent  = success;
-        statFail.textContent     = fail;
-        statRemaining.textContent= Math.max(0, remaining);
-    }
-
-    function setStatus(msg) {
-        statusText.textContent = msg;
-    }
-
-    function showErrors() {
-        if (errors.length === 0) return;
-        errorLog.innerHTML = errors.map(e => `<p>${e}</p>`).join("");
-        errorLog.style.display = "block";
-    }
-
-    function cleanup() {
-        isDownloading        = false;
-        downloadBtn.disabled = false;
-        cancelBtn.disabled   = true;
-        abortController      = null;
-        setTimeout(() => {
-            progressWrap.style.display = "none";
-            progressBar.style.width    = "0%";
-        }, 5000);
-    }
-
-    /* =========================================================
-       Event listeners
-    ========================================================= */
-    downloadBtn.addEventListener("click", downloadAllAsZip);
-    cancelBtn.addEventListener("click",   cancelDownload);
-    previewBtn.addEventListener("click",  togglePreview);
-
-    /* Clamp range inputs on blur */
-    startInput.addEventListener("blur", () => {
-        let s = parseInt(startInput.value, 10);
-        if (isNaN(s) || s < 1)        s = 1;
-        if (s > MAX_TOTAL)             s = MAX_TOTAL;
-        startInput.value = s;
-        if (parseInt(endInput.value, 10) < s) endInput.value = s;
+// Semaphore for concurrency control
+function makeSemaphore(n){
+  let active=0;
+  const queue=[];
+  return async function(fn){
+    return new Promise((resolve,reject)=>{
+      const run=()=>{
+        active++;
+        fn().then(v=>{active--;resolve(v);next()}).catch(e=>{active--;reject(e);next()});
+      };
+      const next=()=>{if(queue.length>0&&active<n)queue.shift()()};
+      if(active<n){run()}else{queue.push(run)};
     });
-    endInput.addEventListener("blur", () => {
-        let e = parseInt(endInput.value, 10);
-        const s = parseInt(startInput.value, 10) || 1;
-        if (isNaN(e) || e < s)  e = s;
-        if (e > MAX_TOTAL)      e = MAX_TOTAL;
-        endInput.value = e;
-        statTotal.textContent = e - s + 1;
-        statRemaining.textContent = e - s + 1;
-    });
+  };
+}
 
-    console.log(`🚀 NFT Downloader ready. Total: ${MAX_TOTAL} images.`);
+async function downloadBatch(ids, zipName, cardEl, conc, maxR, delay){
+  if(cardEl){cardEl.classList.add('active');cardEl.querySelector('.bs').textContent='Downloading…'}
+  const zip=new JSZip();
+  const sem=makeSemaphore(conc);
+  let done=0,ok=0,failed=[];
+  const total=ids.length;
+
+  // Phase 1: Download all
+  const tasks=ids.map(id=>sem(async()=>{
+    if(cancelFlag)return;
+    const blob=await smartFetch(id,maxR,delay);
+    if(blob){
+      zip.file(`${id}.png`,blob);
+      ok++;gOk++;
+    }else{
+      failed.push(id);gFail++;
+    }
+    done++;
+    setSubProg((done/total)*100);
+    setSub(`Batch "${zipName}": ${done}/${total} — ✅${ok} ❌${failed.length}`);
+    if(cardEl)cardEl.querySelector('.bs').textContent=`${done}/${total}`;
+    updateStats();
+  }));
+  await Promise.all(tasks);
+
+  // Phase 2: Aggressive retry for failed ones
+  if(failed.length>0&&!cancelFlag){
+    if(cardEl){cardEl.classList.remove('active');cardEl.classList.add('retrying');cardEl.querySelector('.bs').textContent='Retrying…'}
+    gFail-=failed.length;
+    gRetrying+=failed.length;
+    updateStats();
+    const retryIds=[...failed];
+    failed=[];
+    let rDone=0;
+    const rTasks=retryIds.map(id=>sem(async()=>{
+      if(cancelFlag)return;
+      // More aggressive: 15 retries, longer delay
+      const blob=await smartFetch(id,15,delay*1.5);
+      rDone++;
+      setRetryProg((rDone/retryIds.length)*100);
+      setSub(`Retry pass: ${rDone}/${retryIds.length} — image #${id}`);
+      if(blob){
+        zip.file(`${id}.png`,blob);
+        ok++;gOk++;gRetrying--;
+      }else{
+        failed.push(id);gFail++;gRetrying--;
+      }
+      updateStats();
+    }));
+    await Promise.all(rTasks);
+  }
+
+  if(ok===0){
+    if(cardEl){cardEl.classList.remove('active','retrying');cardEl.classList.add('failed');cardEl.querySelector('.bs').textContent='All failed'}
+    return;
+  }
+
+  // Build ZIP
+  if(cardEl)cardEl.querySelector('.bs').textContent='Zipping…';
+  setStatus(`Building ZIP: ${zipName}…`);
+  try{
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:1}});
+    saveAs(blob,`${zipName}.zip`);
+    gZip++;updateStats();
+    if(cardEl){
+      cardEl.classList.remove('active','retrying');
+      cardEl.classList.add('done');
+      cardEl.querySelector('.bs').textContent=failed.length>0?`✓ ${ok} saved (${failed.length} failed)`:'✓ All saved';
+    }
+  }catch(e){
+    if(cardEl){cardEl.classList.remove('active','retrying');cardEl.classList.add('failed');cardEl.querySelector('.bs').textContent='ZIP error'}
+    console.error(e);
+  }
+}
+
+async function startAll(){
+  if(running)return;
+  running=true;cancelFlag=false;
+  gOk=0;gFail=0;gRetrying=0;gZip=0;updateStats();
+
+  $('startBtn').disabled=true;
+  $('cancelBtn').style.display='';
+  $('resetBtn').style.display='none';
+  $('mainPW').style.display='block';
+  $('subPW').style.display='block';
+  $('retryPW').style.display='none';
+  $('mainBar').style.width='0%';
+  $('subBar').style.width='0%';
+
+  const bSize=Math.max(100,Math.min(1000,parseInt($('batchSize').value)||500));
+  const conc=Math.max(1,Math.min(20,parseInt($('concurrency').value)||5));
+  const maxR=Math.max(3,Math.min(20,parseInt($('maxRetries').value)||10));
+  const delay=Math.max(500,Math.min(10000,parseInt($('retryDelay').value)||2000));
+
+  // Build batch list
+  const batches=[];
+  for(let s=1;s<=TOTAL;s+=bSize) batches.push({s,e:Math.min(s+bSize-1,TOTAL)});
+
+  // Build grid cards
+  const grid=$('batchGrid');
+  grid.innerHTML='';
+  const cards=batches.map((b,i)=>{
+    const c=document.createElement('div');
+    c.className='bc';
+    c.innerHTML=`<div class="bn">Batch ${i+1}</div><div class="br">#${b.s}–${b.e}</div><div class="bs">Waiting…</div>`;
+    grid.appendChild(c);
+    return c;
+  });
+
+  setStatus(`Starting download of ${TOTAL} images in ${batches.length} batch(es)…`);
+  $('retryPW').style.display='block';
+
+  for(let i=0;i<batches.length;i++){
+    if(cancelFlag)break;
+    const b=batches[i];
+    const ids=[];
+    for(let id=b.s;id<=b.e;id++) ids.push(id);
+    setStatus(`Batch ${i+1}/${batches.length}: images #${b.s}–${b.e}`);
+    await downloadBatch(ids,`NFT_${b.s}_to_${b.e}`,cards[i],conc,maxR,delay);
+  }
+
+  running=false;
+  $('startBtn').disabled=false;
+  $('cancelBtn').style.display='none';
+  $('resetBtn').style.display='';
+
+  if(cancelFlag){
+    setStatus(`⏹ Cancelled. ${gZip} ZIP(s) saved, ${gOk} images downloaded, ${gFail} failed.`);
+  }else if(gFail===0){
+    setStatus(`🎉 All ${gOk} images downloaded successfully! ${gZip} ZIP file(s) saved.`);
+  }else{
+    setStatus(`✅ Done. ${gOk} downloaded, ${gFail} still failed after all retries. ${gZip} ZIP(s) saved.`);
+  }
+  setSub('');
+}
+window.startAll=startAll;
+
+function doCancel(){cancelFlag=true;setStatus('⏹ Cancelling… finishing current batch.')}
+window.doCancel=doCancel;
+
+function doReset(){
+  gOk=0;gFail=0;gRetrying=0;gZip=0;updateStats();
+  $('batchGrid').innerHTML='';
+  ['mainPW','subPW','retryPW'].forEach(id=>$(id).style.display='none');
+  ['mainBar','subBar','retryBar'].forEach(id=>$(id).style.width='0%');
+  $('resetBtn').style.display='none';
+  cancelFlag=false;running=false;$('startBtn').disabled=false;
+  setStatus('✅ Reset. Ready to start again.');setSub('');
+}
+window.doReset=doReset;
 })();
 </script>
 </body>
