@@ -1,400 +1,676 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>NFT Downloader — Ultra Fast</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d1117;font-family:'Segoe UI',sans-serif;color:#f0f6fc;padding:24px 14px;min-height:100vh;display:flex;flex-direction:column;align-items:center}
-.wrap{max-width:940px;width:100%;background:#161b22;border-radius:16px;padding:32px;border:1px solid #30363d;box-shadow:0 8px 32px rgba(0,0,0,.6)}
-h1{font-size:1.75rem;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.badge{font-size:.78rem;background:#238636;padding:3px 13px;border-radius:40px;font-weight:400}
-.sub{color:#8b949e;margin-bottom:20px;padding-left:13px;border-left:3px solid #238636;font-size:.91rem;line-height:1.6}
-/* Speed presets */
-.preset-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.preset{flex:1;min-width:110px;padding:11px 8px;border-radius:10px;border:1.5px solid #30363d;background:#1c2333;color:#f0f6fc;cursor:pointer;font-size:.84rem;text-align:center;transition:all .15s}
-.preset small{display:block;color:#8b949e;font-size:.71rem;margin-top:2px}
-.preset.active{border-color:#238636;background:#0e2a15;color:#56d364}
-.preset.active small{color:#4cba5a}
-.preset:hover:not(.active){border-color:#58a6ff}
-/* Advanced toggle */
-.adv-toggle{font-size:.8rem;color:#58a6ff;cursor:pointer;margin-bottom:10px;display:inline-block}
-.adv-toggle:hover{text-decoration:underline}
-.adv-box{background:#1c2333;border-radius:10px;padding:14px;margin-bottom:18px;display:none;flex-wrap:wrap;gap:12px;align-items:flex-end}
-.adv-box.open{display:flex}
-.adv-box label{font-size:.79rem;color:#8b949e;display:block;margin-bottom:3px}
-.adv-box input[type=number]{background:#0d1117;color:#f0f6fc;border:1px solid #30363d;border-radius:6px;padding:5px 9px;font-size:.9rem;width:84px}
-.adv-box input:focus{outline:none;border-color:#238636}
-/* Buttons */
-.btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-.btn{border:none;color:#fff;padding:11px 22px;border-radius:40px;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .16s;display:inline-flex;align-items:center;gap:7px}
-.bg{background:#238636}.bg:hover:not(:disabled){background:#2ea043;transform:scale(1.02)}.bg:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.br2{background:#b91c1c}.br2:hover:not(:disabled){background:#dc2626}
-.bgy{background:#21262d}.bgy:hover:not(:disabled){background:#30363d}
-/* Stats */
-.stats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
-.st{background:#1c2333;border-radius:8px;padding:9px 11px;flex:1;min-width:65px;text-align:center}
-.st .v{font-size:1.3rem;font-weight:700}.st .l{font-size:.67rem;color:#8b949e;margin-top:1px}
-.gv .v{color:#56d364}.rv .v{color:#f85149}.bv .v{color:#58a6ff}.yv .v{color:#e3b341}.wv .v{color:#f0f6fc}
-/* Progress */
-.pg-wrap{width:100%;height:11px;background:#21262d;border-radius:10px;overflow:hidden;margin-bottom:5px;display:none}
-.pg-bar{height:100%;width:0%;border-radius:10px;transition:width .15s}
-#mainBar{background:linear-gradient(90deg,#1a7f37,#56d364)}
-#subBar{background:#58a6ff}
-/* Speed meter */
-.speed-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px}
-#statusText{font-size:.86rem;color:#8b949e;flex:1}
-.speed-badge{background:#1c2333;border-radius:20px;padding:4px 12px;font-size:.78rem;color:#56d364;font-weight:600;white-space:nowrap}
-#subStatus{font-size:.75rem;color:#484f58;min-height:16px;margin-bottom:14px}
-/* Batch grid */
-.bg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px;margin-top:4px;max-height:260px;overflow-y:auto}
-.bc{border-radius:7px;border:1px solid #30363d;background:#1c2333;padding:8px 6px;text-align:center;font-size:.76rem;transition:all .12s}
-.bc.running{background:#0e2215;border-color:#56d364;animation:glow .8s infinite alternate}
-.bc.done{background:#0e2a15;border-color:#238636;color:#56d364}
-.bc.failed{background:#2a0e0e;border-color:#f85149;color:#f85149}
-.bc.retrying{background:#2a1f0a;border-color:#e3b341;color:#e3b341}
-.bc .bn{font-weight:700;font-size:.88rem}
-.bc .br3{color:#8b949e;font-size:.68rem;margin-top:1px}
-.bc.done .br3{color:#4cba5a}.bc.failed .br3,.bc.retrying .br3{color:inherit}
-.bc .bs{font-size:.65rem;margin-top:2px;color:#8b949e}
-.bc.done .bs{color:#56d364}.bc.failed .bs{color:#f85149}.bc.retrying .bs{color:#e3b341}
-@keyframes glow{from{border-color:#238636}to{border-color:#56d364}}
-/* ETA bar */
-.eta-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.eta-box{background:#1c2333;border-radius:8px;padding:8px 13px;font-size:.78rem;color:#8b949e;flex:1;min-width:100px}
-.eta-box span{color:#f0f6fc;font-weight:600;display:block;font-size:.93rem}
-.footer{margin-top:18px;color:#484f58;font-size:.74rem;text-align:center}
-.pill{background:#1c2333;padding:2px 8px;border-radius:20px;color:#58a6ff;font-size:.74rem}
-@media(max-width:600px){.wrap{padding:15px}h1{font-size:1.25rem}.btn{width:100%;justify-content:center}.preset{min-width:45%}}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>⚡ NFT Downloader <span class="badge">Ultra Fast · 1–6969</span></h1>
-  <p class="sub">Parallel download engine — all 6969 images, zero failures, maximum speed.</p>
-
-  <p style="font-size:.82rem;color:#8b949e;margin-bottom:9px;font-weight:500">⚡ Speed preset:</p>
-  <div class="preset-row">
-    <button class="preset" onclick="applyPreset('safe')">🐢 Safe<small>5 workers · no throttle</small></button>
-    <button class="preset active" id="p-fast" onclick="applyPreset('fast')">🚀 Fast<small>20 workers · balanced</small></button>
-    <button class="preset" onclick="applyPreset('turbo')">⚡ Turbo<small>40 workers · max speed</small></button>
-    <button class="preset" onclick="applyPreset('ludicrous')">🔥 Ludicrous<small>80 workers · might throttle</small></button>
-  </div>
-
-  <span class="adv-toggle" onclick="toggleAdv()">⚙️ Advanced settings ▾</span>
-  <div class="adv-box" id="advBox">
-    <div><label>Workers (concurrency)</label><input type="number" id="workers" value="20" min="1" max="100"/></div>
-    <div><label>Images per ZIP</label><input type="number" id="batchSize" value="500" min="100" max="1000" step="100"/></div>
-    <div><label>Max retries</label><input type="number" id="maxR" value="8" min="1" max="30"/></div>
-    <div><label>Base delay (ms)</label><input type="number" id="baseDelay" value="800" min="0" max="5000" step="100"/></div>
-    <div><label>Timeout (ms)</label><input type="number" id="timeout" value="25000" min="5000" max="60000" step="1000"/></div>
-  </div>
-
-  <div class="btns">
-    <button id="startBtn" class="btn bg" onclick="startAll()">⬇️ Download All 6969 Images</button>
-    <button id="cancelBtn" class="btn br2" onclick="doCancel()" style="display:none">⏹ Cancel</button>
-    <button id="resetBtn" class="btn bgy" onclick="doReset()" style="display:none">🔄 Reset</button>
-  </div>
-
-  <div class="stats">
-    <div class="st gv"><div class="v" id="sOk">0</div><div class="l">✅ Downloaded</div></div>
-    <div class="st rv"><div class="v" id="sFail">0</div><div class="l">❌ Failed</div></div>
-    <div class="st yv"><div class="v" id="sQ">6969</div><div class="l">⏳ Queued</div></div>
-    <div class="st bv"><div class="v" id="sZip">0</div><div class="l">📦 ZIPs</div></div>
-    <div class="st wv"><div class="v" id="sPct">0%</div><div class="l">Progress</div></div>
-  </div>
-
-  <div class="eta-row">
-    <div class="eta-box">Speed<span id="etaSpeed">— img/s</span></div>
-    <div class="eta-box">Elapsed<span id="etaElapsed">0s</span></div>
-    <div class="eta-box">Remaining<span id="etaLeft">—</span></div>
-    <div class="eta-box">Active workers<span id="etaWorkers">0</span></div>
-  </div>
-
-  <div class="pg-wrap" id="mainPW"><div class="pg-bar" id="mainBar"></div></div>
-  <div class="pg-wrap" id="subPW"><div class="pg-bar" id="subBar"></div></div>
-
-  <div class="speed-row">
-    <div id="statusText">✅ Ready — select a speed preset and click Download.</div>
-    <div class="speed-badge" id="speedBadge">0 img/s</div>
-  </div>
-  <div id="subStatus"></div>
-
-  <div id="bGrid" class="bg-grid"></div>
-</div>
-<div class="footer">Files: <span class="pill">1.png</span> → <span class="pill">6969.png</span> packed into ZIP batches</div>
-
-<script>
-(function(){
-'use strict';
-const BASE='https://qiydg7uxbfyhvl4jfhmlsqrzcjirat6w7xpyjiogwuipszliswoq.arweave.net/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/';
-const GATEWAYS=[
-  id=>`https://qiydg7uxbfyhvl4jfhmlsqrzcjirat6w7xpyjiogwuipszliswoq.arweave.net/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/${id}.png`,
-  id=>`https://arweave.net/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/${id}.png`,
-  id=>`https://gateway.irys.xyz/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/${id}.png`,
-  id=>`https://ar-io.net/gjAzfpcJcHqviSnYuUI5ElEQT9b934ShxrUQ-WVolZ0/${id}.png`,
-];
-const TOTAL=6969;
-
-let running=false,cancelFlag=false;
-let gOk=0,gFail=0,gQ=TOTAL,gZip=0;
-let startTime=0,activeWorkers=0;
-let timerInterval=null;
-
-const $=id=>document.getElementById(id);
-const setStatus=t=>$('statusText').textContent=t;
-const setSub=t=>$('subStatus').textContent=t;
-
-/* ── Presets ── */
-const PRESETS={
-  safe:  {workers:5,  batchSize:500,maxR:10,baseDelay:1500,timeout:30000},
-  fast:  {workers:20, batchSize:500,maxR:8, baseDelay:800, timeout:25000},
-  turbo: {workers:40, batchSize:500,maxR:6, baseDelay:400, timeout:20000},
-  ludicrous:{workers:80,batchSize:500,maxR:5,baseDelay:200,timeout:15000},
-};
-function applyPreset(name){
-  const p=PRESETS[name];
-  $('workers').value=p.workers;
-  $('batchSize').value=p.batchSize;
-  $('maxR').value=p.maxR;
-  $('baseDelay').value=p.baseDelay;
-  $('timeout').value=p.timeout;
-  document.querySelectorAll('.preset').forEach(el=>el.classList.remove('active'));
-  const map={safe:'p-safe',fast:'p-fast',turbo:'p-turbo',ludicrous:'p-lud'};
-  // toggle active on clicked
-  document.querySelectorAll('.preset').forEach((el,i)=>{
-    if(['safe','fast','turbo','ludicrous'][i]===name) el.classList.add('active');
-  });
-}
-window.applyPreset=applyPreset;
-
-function toggleAdv(){
-  const b=$('advBox');
-  b.classList.toggle('open');
-}
-window.toggleAdv=toggleAdv;
-
-/* ── Stats & UI ── */
-function updateStats(){
-  gQ=Math.max(0,TOTAL-gOk-gFail);
-  $('sOk').textContent=gOk;
-  $('sFail').textContent=gFail;
-  $('sQ').textContent=gQ;
-  $('sZip').textContent=gZip;
-  const pct=((gOk+gFail)/TOTAL*100);
-  $('sPct').textContent=pct.toFixed(1)+'%';
-  $('mainPW').style.display='block';
-  $('mainBar').style.width=pct.toFixed(2)+'%';
-  $('etaWorkers').textContent=activeWorkers;
-
-  const elapsed=(Date.now()-startTime)/1000;
-  const speed=elapsed>0?(gOk+gFail)/elapsed:0;
-  $('etaSpeed').textContent=speed.toFixed(1)+' img/s';
-  $('speedBadge').textContent=speed.toFixed(1)+' img/s';
-  $('etaElapsed').textContent=fmtTime(elapsed);
-  const rem=speed>0?(TOTAL-(gOk+gFail))/speed:null;
-  $('etaLeft').textContent=rem!=null?fmtTime(rem):'—';
-}
-function fmtTime(s){
-  if(s<60) return s.toFixed(0)+'s';
-  if(s<3600) return Math.floor(s/60)+'m '+Math.floor(s%60)+'s';
-  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
-}
-
-/* ── Fetch with multi-gateway retry ── */
-async function fetchImage(id,maxR,baseDelay,timeout){
-  for(let attempt=0;attempt<maxR;attempt++){
-    if(cancelFlag) return null;
-    const gwFn=GATEWAYS[attempt % GATEWAYS.length];
-    const url=gwFn(id);
-    try{
-      const ctrl=new AbortController();
-      const t=setTimeout(()=>ctrl.abort(),timeout);
-      const r=await fetch(url,{signal:ctrl.signal,cache:'no-store'});
-      clearTimeout(t);
-      if(r.ok) return await r.blob();
-      if(r.status===429||r.status===503||r.status===502){
-        await sleep(baseDelay*(attempt+2)*2);
-        continue;
-      }
-    }catch(e){
-      if(cancelFlag) return null;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risograph NFT Gallery | CryptoDickbutts</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #0a0a12; }
+    .mono { font-family: 'Space Mono', monospace; }
+    
+    .riso-effect {
+      position: relative;
     }
-    if(attempt<maxR-1) await sleep(Math.min(baseDelay*(attempt+1),8000));
-  }
-  return null;
-}
-function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+    .riso-effect::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(45deg, rgba(255,80,90,0.12) 0px, rgba(255,80,90,0.12) 2px, transparent 2px, transparent 6px),
+                  repeating-linear-gradient(135deg, rgba(0,140,255,0.08) 0px, rgba(0,140,255,0.08) 3px, transparent 3px, transparent 8px);
+      pointer-events: none;
+      mix-blend-mode: overlay;
+      border-radius: inherit;
+    }
+    
+    .grain-overlay {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    .card {
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    .card:hover {
+      transform: translateY(-6px);
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-in {
+      animation: fadeInUp 0.4s ease forwards;
+    }
+    
+    .modal-open {
+      animation: modalFade 0.2s ease;
+    }
+    
+    @keyframes modalFade {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    .image-toggle-btn {
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: all 0.2s;
+    }
+    .image-toggle-btn:hover {
+      background: #ff5a5f;
+      border-color: white;
+    }
+    
+    .scrollbar-custom::-webkit-scrollbar { width: 5px; }
+    .scrollbar-custom::-webkit-scrollbar-track { background: #1a1a2a; }
+    .scrollbar-custom::-webkit-scrollbar-thumb { background: #ff5a5f; border-radius: 10px; }
+    
+    .download-btn {
+      background: linear-gradient(135deg, #ff5a5f, #ff2a2f);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .download-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 10px rgba(255,90,95,0.5);
+    }
+    .download-btn:active {
+      transform: scale(0.98);
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body class="scrollbar-custom overflow-x-hidden">
+  <div class="fixed inset-0 grain-overlay pointer-events-none z-0"></div>
+  
+  <div id="app" class="relative z-10 min-h-screen">
+    <!-- Header -->
+    <header class="sticky top-0 z-30 backdrop-blur-xl bg-[#0a0a12]/90 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-1 h-6 bg-[#ff5a5f] rounded-full"></div>
+          <div>
+            <h1 id="main-title" class="mono text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#ff6a6f] to-[#ff5a5f] bg-clip-text text-transparent">RISOGRAPH NFT</h1>
+            <p id="subtitle" class="text-xs text-gray-400">CryptoDickbutts · Series 3</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <!-- DOWNLOAD AS ZIP BUTTON -->
+          <button id="download-metadata-btn" class="download-btn flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-bold mono shadow-lg">
+            <i data-lucide="archive" class="w-4 h-4"></i>
+            <span>📦 ZIP (1-5360.json)</span>
+          </button>
+          
+          <!-- Pagination -->
+          <div class="flex items-center bg-[#16162a] rounded-full border border-[#ff5a5f]/30 overflow-hidden">
+            <button id="prev-btn" class="px-3 py-2 hover:bg-[#ff5a5f]/20 transition text-[#ff8a8f]"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+            <div class="flex items-center gap-1 px-2 mono text-sm">
+              <span class="text-gray-400">pg</span>
+              <input id="page-input" type="number" min="1" max="268" value="1" class="w-12 bg-transparent text-center text-[#ff5a5f] font-bold outline-none">
+              <span class="text-gray-400">/<span id="total-pages">268</span></span>
+            </div>
+            <button id="next-btn" class="px-3 py-2 hover:bg-[#ff5a5f]/20 transition"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+          </div>
+          
+          <!-- Direct ID jump -->
+          <input id="search-input" type="number" placeholder="ID #" min="1" max="5360" 
+                 class="w-28 bg-[#16162a] border border-[#2a2a4a] rounded-full px-4 py-2 text-sm outline-none focus:border-[#ff5a5f] transition text-white placeholder:text-gray-500 mono">
+        </div>
+      </div>
+    </header>
 
-/* ── Worker pool queue ── */
-function runPool(tasks,poolSize){
-  return new Promise(resolve=>{
-    let idx=0,done=0;
-    const total=tasks.length;
-    if(total===0){resolve();return;}
-    function next(){
-      if(cancelFlag){done++;if(done>=total)resolve();return;}
-      if(idx>=total) return;
-      const task=tasks[idx++];
-      activeWorkers++;updateStats();
-      task().finally(()=>{
-        activeWorkers--;done++;
-        updateStats();
-        if(done>=total) resolve();
-        else if(idx<total) next();
+    <!-- Gallery Grid -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div id="grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5"></div>
+      <div id="loading" class="hidden flex flex-col items-center justify-center py-20 gap-3">
+        <div class="w-10 h-10 border-3 border-[#ff5a5f]/30 border-t-[#ff5a5f] rounded-full animate-spin"></div>
+        <p class="mono text-sm text-gray-400">fetching riso prints...</p>
+      </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" id="modal-backdrop"></div>
+      <div class="relative bg-[#12121f] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-auto border border-white/20 modal-open">
+        <div class="relative group">
+          <div id="modal-img-wrapper" class="relative overflow-hidden bg-[#0a0a12] rounded-t-2xl">
+            <img id="modal-img" class="w-full aspect-square object-cover" alt="NFT">
+          </div>
+          <button id="toggle-original" class="absolute bottom-4 right-4 z-20 image-toggle-btn rounded-full px-4 py-2 text-xs font-bold flex items-center gap-2 shadow-lg">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span id="toggle-text" class="mono">RISO MODE</span>
+          </button>
+          <button id="modal-close" class="absolute top-4 right-4 z-20 bg-black/50 backdrop-blur rounded-full p-2 hover:bg-[#ff5a5f] transition border border-white/20">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        
+        <div class="p-5">
+          <h2 id="modal-title" class="mono text-xl font-bold text-[#ff5a5f] mb-4"></h2>
+          <div id="modal-traits" class="grid grid-cols-2 gap-2"></div>
+          <div class="mt-4 pt-3 border-t border-white/10 text-right">
+            <span class="text-[10px] text-gray-500 mono">✦ risograph spectral edition</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ======================== CONFIGURATION ========================
+    const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
+    const PER_PAGE = 20;
+    const TOTAL_NFTS = 5360;
+    const TOTAL_PAGES = Math.ceil(TOTAL_NFTS / PER_PAGE);
+    const CONCURRENT_LIMIT = 30;
+    
+    // CID mapping with folder structure - প্রতিটি CID তে ৫০০ করে NFT
+    const CID_RANGES = [
+      { start: 160, end: 499, cid: 'QmcENAp91phXWRT7JpEpAasVve4oCsYbev56HNHD2BgLjE', folder: '0' },
+      { start: 500, end: 999, cid: 'QmfUxUc1iu2RQSm1AygUEtX7giPrrzhvhKToQ4biQcimLf', folder: '1' },
+      { start: 1000, end: 1499, cid: 'Qmeo1JdaA4hufbKneRQVNYQS5BJGGziBr4k14gzHeCgb9L', folder: '2' },
+      { start: 1500, end: 1999, cid: 'QmUQu8Q66QYW2pn77oojimEQhvjH8tCs1jMbDHj43tcCFu', folder: '3' },
+      { start: 2000, end: 2499, cid: 'Qmd8YGp9yUKtXas1cT3UsYFpWwfWHvV4Bssj8Pbvrq6BZ5', folder: '4' },
+      { start: 2500, end: 2999, cid: 'QmfWsA2JKaDE3ipd8FdLHsayGQ6PQ4wVAfCK4PEb1ykUif', folder: '5' },
+      { start: 3000, end: 3499, cid: 'QmdDkgz1a85LaJZxEr6awGCaf2CpZBMWc9eQ1ezEh8sqJW', folder: '6' },
+      { start: 3500, end: 3999, cid: 'QmaduZqVgbqtJAoW7eyejNSLVsqXVeaRPC5HkG1SeGCyut', folder: '7' },
+      { start: 4000, end: 4499, cid: 'QmQLmSXT5zY6XcNrdwhX8GbGc9QrbEhbwvEmjggRBxKeib', folder: '8' },
+      { start: 4500, end: 4999, cid: 'QmTLx6G5hUDCoV8aBbXLuuV1kaUwd6KiSrARUJUHLGhEcP', folder: '9' },
+      { start: 5000, end: 5360, cid: 'QmZodri3bfsGebBBBjeBAJLztq6DmQLDqiXi4LhEeU2QCS', folder: '10' }
+    ];
+    
+    let currentPage = 1;
+    let currentModalState = { isRiso: true, risoUrl: null, originalUrl: null, meta: null, id: null };
+    
+    // Caches
+    let metadataCache = {};
+    let risoCache = {};
+    
+    // Default config for SDK
+    const defaultConfig = {
+      gallery_title: 'RISOGRAPH NFT',
+      subtitle_text: 'CryptoDickbutts · Series 3',
+      background_color: '#0a0a12',
+      accent_color: '#ff5a5f',
+      surface_color: '#16162a',
+      text_color: '#ffffff',
+      muted_color: '#9ca3af',
+      font_family: 'Inter',
+      font_size: 16
+    };
+    
+    // ======================== UTILITIES ========================
+    function getCIDForId(id) {
+      for (const range of CID_RANGES) {
+        if (id >= range.start && id <= range.end) {
+          return range;
+        }
+      }
+      return null;
+    }
+    
+    function getMetadataUrl(id) {
+      const range = getCIDForId(id);
+      if (!range) return null;
+      
+      // Format: https://ipfs.io/ipfs/CID/folder/id.json
+      return `${IPFS_GATEWAY}${range.cid}/${range.folder}/${id}.json`;
+    }
+    
+    function getImageUrl(ipfsUri) {
+      if (!ipfsUri) return null;
+      
+      // If it's already HTTP
+      if (ipfsUri.startsWith('http://') || ipfsUri.startsWith('https://')) {
+        return ipfsUri;
+      }
+      
+      // Extract CID from ipfs://
+      if (ipfsUri.startsWith('ipfs://')) {
+        const cid = ipfsUri.replace('ipfs://', '');
+        return `${IPFS_GATEWAY}${cid}`;
+      }
+      
+      // If it's just a CID
+      if (ipfsUri.startsWith('Qm')) {
+        return `${IPFS_GATEWAY}${ipfsUri}`;
+      }
+      
+      return null;
+    }
+    
+    async function applyRisographEffect(imgSrc) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          
+          for (let i = 0; i < data.length; i += 4) {
+            let r = data[i];
+            let g = data[i+1];
+            let b = data[i+2];
+            
+            let gray = r * 0.3 + g * 0.59 + b * 0.11;
+            let contrast = 1.5;
+            let contrasted = (gray - 128) * contrast + 128;
+            contrasted = Math.min(255, Math.max(0, contrasted));
+            
+            let newR = contrasted * 1.15;
+            let newG = contrasted * 0.85;
+            let newB = contrasted * 0.9;
+            
+            data[i] = Math.min(255, newR);
+            data[i+1] = Math.min(255, newG);
+            data[i+2] = Math.min(255, newB);
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg', 0.9));
+        };
+        img.onerror = () => resolve(imgSrc);
+        img.src = imgSrc;
       });
     }
-    for(let i=0;i<Math.min(poolSize,total);i++) next();
-  });
-}
-
-/* ── Download one batch into a ZIP and save ── */
-async function downloadBatch(ids,zipName,cardEl,poolSize,maxR,baseDelay,timeout){
-  if(cardEl){cardEl.classList.add('running');cardEl.querySelector('.bs').textContent='Downloading…'}
-  const zip=new JSZip();
-  let ok=0,fail=0,done=0;
-  const bTotal=ids.length;
-
-  const tasks=ids.map(id=>async()=>{
-    if(cancelFlag)return;
-    const blob=await fetchImage(id,maxR,baseDelay,timeout);
-    if(blob){zip.file(`${id}.png`,blob);ok++;gOk++;}
-    else{fail++;gFail++;}
-    done++;
-    // sub progress for this batch
-    $('subPW').style.display='block';
-    $('subBar').style.width=((done/bTotal)*100).toFixed(1)+'%';
-    if(cardEl) cardEl.querySelector('.bs').textContent=`${done}/${bTotal}`;
-    updateStats();
-  });
-
-  await runPool(tasks,poolSize);
-
-  // Retry any still-failed IDs (extra aggressive pass)
-  if(fail>0&&!cancelFlag){
-    if(cardEl){cardEl.classList.remove('running');cardEl.classList.add('retrying');cardEl.querySelector('.bs').textContent='Retrying…'}
-    gFail-=fail;fail=0;
-    // collect failed by checking zip
-    const zipFiles=Object.keys(zip.files);
-    const missing=ids.filter(id=>!zipFiles.includes(`${id}.png`));
-    let rDone=0;
-    const rTasks=missing.map(id=>async()=>{
-      if(cancelFlag)return;
-      const blob=await fetchImage(id,12,baseDelay*2,timeout+10000);
-      if(blob){zip.file(`${id}.png`,blob);gOk++;}
-      else{gFail++;}
-      rDone++;
-      if(cardEl) cardEl.querySelector('.bs').textContent=`Retry ${rDone}/${missing.length}`;
-      updateStats();
+    
+    async function getRisoVersion(id, originalUrl) {
+      if (risoCache[id]) return risoCache[id];
+      try {
+        const risoUrl = await applyRisographEffect(originalUrl);
+        risoCache[id] = risoUrl;
+        return risoUrl;
+      } catch (err) {
+        console.warn(`RISO effect failed for ${id}:`, err);
+        return originalUrl;
+      }
+    }
+    
+    async function fetchNFT(id) {
+      if (metadataCache[id]) return metadataCache[id];
+      
+      const url = getMetadataUrl(id);
+      if (!url) {
+        console.warn(`No CID range found for ID ${id}`);
+        return {
+          tokenId: id,
+          name: `#${id}`,
+          image: `https://placehold.co/600x600/1a1a2a/ff5a5f?text=${id}`,
+          attributes: [],
+          raw: null,
+          error: 'No CID range'
+        };
+      }
+      
+      try {
+        console.log(`📡 Fetching metadata: ${url}`);
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        console.log(`✅ NFT #${id} loaded:`, data.name);
+        
+        // Extract image URL from metadata
+        let imageUrl = null;
+        if (data.image) {
+          imageUrl = getImageUrl(data.image);
+          console.log(`🖼️ NFT #${id} image CID: ${data.image}`);
+          console.log(`🖼️ NFT #${id} image URL: ${imageUrl}`);
+        }
+        
+        // If no image found, use placeholder
+        if (!imageUrl) {
+          console.warn(`⚠️ No image for #${id}, using placeholder`);
+          imageUrl = `https://placehold.co/600x600/1a1a2a/ff5a5f?text=${id}`;
+        }
+        
+        const normalized = {
+          tokenId: id,
+          name: data.name || `CryptoDickbutt #${id}`,
+          description: data.description || '',
+          image: imageUrl,
+          attributes: Array.isArray(data.attributes) ? data.attributes : [],
+          raw: data
+        };
+        
+        metadataCache[id] = normalized;
+        return normalized;
+      } catch (err) {
+        console.warn(`❌ Failed #${id}:`, err);
+        return {
+          tokenId: id,
+          name: `#${id}`,
+          image: `https://placehold.co/600x600/1a1a2a/ff5a5f?text=${id}`,
+          attributes: [],
+          raw: null,
+          error: err.message
+        };
+      }
+    }
+    
+    // ================ DOWNLOAD ZIP ================
+    async function downloadAsZip() {
+      const total = TOTAL_NFTS;
+      
+      if (!confirm(`📦 Download ${total} JSON files as ZIP?\n\nThis will take ~30 seconds. Continue?`)) return;
+      
+      const overlay = document.createElement('div');
+      overlay.className = 'fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center gap-4 backdrop-blur-md';
+      overlay.innerHTML = `
+        <div class="bg-[#16162a] rounded-2xl p-8 max-w-md w-full border-2 border-[#ff5a5f] shadow-2xl">
+          <div class="flex items-center justify-center mb-4">
+            <div class="relative">
+              <div class="w-16 h-16 border-4 border-[#ff5a5f]/30 border-t-[#ff5a5f] rounded-full animate-spin"></div>
+              <i data-lucide="archive" class="absolute inset-0 m-auto w-6 h-6 text-[#ff5a5f]"></i>
+            </div>
+          </div>
+          <p class="mono text-white font-bold text-lg text-center mb-2">📦 Creating ZIP Archive</p>
+          <p class="text-gray-400 text-sm text-center mb-4">Fetching ${total} NFTs...</p>
+          <div class="w-full bg-[#0a0a12] rounded-full h-3 overflow-hidden mb-3">
+            <div id="dl-bar" class="bg-gradient-to-r from-[#ff5a5f] to-[#ff8a8f] h-3 transition-all duration-200" style="width: 0%"></div>
+          </div>
+          <div class="flex justify-between text-xs mono">
+            <span id="dl-current" class="text-[#ff5a5f] font-bold">0</span>
+            <span class="text-gray-500">/ ${total}</span>
+            <span id="dl-speed" class="text-green-400">preparing...</span>
+          </div>
+          <p class="text-[10px] text-gray-600 text-center mt-4">✨ Files: 1.json to ${total}.json</p>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      
+      setTimeout(() => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }, 10);
+      
+      const zip = new JSZip();
+      let completed = 0;
+      let failed = [];
+      const startTime = Date.now();
+      
+      // Process in batches
+      const batchSize = 30;
+      for (let i = 1; i <= total; i += batchSize) {
+        const batch = [];
+        for (let j = i; j < Math.min(i + batchSize, total + 1); j++) {
+          batch.push(j);
+        }
+        
+        await Promise.all(batch.map(async (id) => {
+          try {
+            const meta = await fetchNFT(id);
+            zip.file(`${id}.json`, JSON.stringify(meta, null, 2));
+          } catch (err) {
+            console.error(`Failed ${id}:`, err);
+            failed.push(id);
+            zip.file(`${id}.json`, JSON.stringify({ 
+              tokenId: id, 
+              error: err.message,
+              fetchedAt: new Date().toISOString()
+            }, null, 2));
+          }
+          
+          completed++;
+          const progress = (completed / total) * 100;
+          document.getElementById('dl-bar').style.width = `${progress}%`;
+          document.getElementById('dl-current').textContent = completed;
+          
+          const elapsed = (Date.now() - startTime) / 1000;
+          if (elapsed > 0) {
+            const speed = (completed / elapsed).toFixed(1);
+            document.getElementById('dl-speed').textContent = `${speed} files/sec`;
+          }
+        }));
+      }
+      
+      document.getElementById('dl-current').textContent = 'Packaging...';
+      document.getElementById('dl-speed').textContent = 'creating ZIP...';
+      
+      const blob = await zip.generateAsync({ 
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
+      
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `cryptodickbutts_1_to_${total}_${Date.now()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      
+      overlay.remove();
+      
+      const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+      if (failed.length > 0) {
+        alert(`✅ ZIP Created!\n\n📊 Stats:\n• Total: ${total} files\n• Time: ${totalTime}s\n• Speed: ${(total/totalTime).toFixed(1)} files/sec\n• Failed: ${failed.length}\n• Failed IDs: ${failed.slice(0, 10).join(', ')}${failed.length > 10 ? '...' : ''}`);
+      } else {
+        alert(`✅ ZIP Created Successfully!\n\n📊 Stats:\n• Total: ${total} files\n• Time: ${totalTime}s\n• Speed: ${(total/totalTime).toFixed(1)} files/sec\n• All files downloaded!`);
+      }
+    }
+    
+    // ======================== RENDER GRID ========================
+    async function renderGrid(page) {
+      const grid = document.getElementById('grid');
+      const loading = document.getElementById('loading');
+      
+      if (!grid) return;
+      
+      grid.innerHTML = '';
+      loading.classList.remove('hidden');
+      
+      const startId = (page - 1) * PER_PAGE + 1;
+      const endId = Math.min(startId + PER_PAGE - 1, TOTAL_NFTS);
+      
+      let loaded = 0;
+      
+      for (let id = startId; id <= endId; id++) {
+        const metadata = await fetchNFT(id);
+        
+        if (metadata) {
+          const risoPreview = await getRisoVersion(id, metadata.image);
+          
+          const card = document.createElement('div');
+          card.className = 'card cursor-pointer animate-in';
+          card.style.animationDelay = `${(id - startId) * 30}ms`;
+          
+          card.innerHTML = `
+            <div class="relative rounded-xl overflow-hidden bg-[#16162a] border border-white/10 hover:border-[#ff5a5f]/50 transition-all">
+              <img 
+                src="${risoPreview}" 
+                alt="${metadata.name}"
+                class="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
+                onerror="console.error('❌ Image load failed for #${id}'); this.src='https://placehold.co/600x600/1a1a2a/ff5a5f?text=${id}'"
+              />
+              <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-3">
+                <p class="mono text-sm font-bold text-white truncate">${escapeHtml(metadata.name)}</p>
+                <p class="text-[10px] text-[#ff8a8f] mono">#${id}</p>
+              </div>
+            </div>
+          `;
+          
+          card.addEventListener('click', () => openModal(id, metadata));
+          grid.appendChild(card);
+        }
+        
+        loaded++;
+        if (loaded === (endId - startId + 1)) {
+          loading.classList.add('hidden');
+        }
+      }
+    }
+    
+    // ======================== MODAL ========================
+    async function openModal(id, metadata) {
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modal-img');
+      const modalTitle = document.getElementById('modal-title');
+      const traitsContainer = document.getElementById('modal-traits');
+      const toggleText = document.getElementById('toggle-text');
+      const imgWrapper = document.getElementById('modal-img-wrapper');
+      
+      const originalUrl = metadata.image;
+      const risoUrl = await getRisoVersion(id, originalUrl);
+      
+      currentModalState = { isRiso: true, risoUrl, originalUrl, meta: metadata, id };
+      
+      modalImg.src = risoUrl;
+      modalImg.classList.add('riso-effect');
+      imgWrapper.classList.add('riso-effect');
+      toggleText.innerText = 'RISO MODE';
+      
+      modalTitle.innerText = `${metadata.name} — #${id}`;
+      
+      traitsContainer.innerHTML = '';
+      if (metadata.attributes && metadata.attributes.length > 0) {
+        metadata.attributes.slice(0, 6).forEach(attr => {
+          const div = document.createElement('div');
+          div.className = 'bg-[#1e1e32] rounded-lg p-2.5 border border-white/5';
+          div.innerHTML = `
+            <p class="text-[9px] uppercase tracking-wider text-gray-400">${escapeHtml(attr.trait_type || 'property')}</p>
+            <p class="mono text-sm font-semibold text-[#ff8a8f] truncate">${escapeHtml(attr.value || '—')}</p>
+          `;
+          traitsContainer.appendChild(div);
+        });
+      } else {
+        traitsContainer.innerHTML = '<div class="col-span-2 text-center text-gray-400 text-sm">no traits available</div>';
+      }
+      
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('modal').classList.remove('flex');
+    }
+    
+    function toggleImageMode() {
+      const modalImg = document.getElementById('modal-img');
+      const toggleText = document.getElementById('toggle-text');
+      const imgWrapper = document.getElementById('modal-img-wrapper');
+      
+      currentModalState.isRiso = !currentModalState.isRiso;
+      
+      if (currentModalState.isRiso) {
+        modalImg.src = currentModalState.risoUrl;
+        modalImg.classList.add('riso-effect');
+        imgWrapper.classList.add('riso-effect');
+        toggleText.innerText = 'RISO MODE';
+      } else {
+        modalImg.src = currentModalState.originalUrl;
+        modalImg.classList.remove('riso-effect');
+        imgWrapper.classList.remove('riso-effect');
+        toggleText.innerText = 'ORIGINAL';
+      }
+    }
+    
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m] || m));
+    }
+    
+    // ======================== PAGINATION ========================
+    function updatePage() {
+      document.getElementById('page-input').value = currentPage;
+      renderGrid(currentPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // ======================== EVENT LISTENERS ========================
+    document.getElementById('prev-btn')?.addEventListener('click', () => {
+      if (currentPage > 1) { currentPage--; updatePage(); }
     });
-    await runPool(rTasks,Math.max(3,Math.floor(poolSize/3)));
-  }
-
-  if(ok===0&&Object.keys(zip.files).filter(k=>k.endsWith('.png')).length===0){
-    if(cardEl){cardEl.classList.remove('running','retrying');cardEl.classList.add('failed');cardEl.querySelector('.bs').textContent='All failed'}
-    return;
-  }
-
-  if(cardEl) cardEl.querySelector('.bs').textContent='Zipping…';
-  setStatus(`💾 Saving ZIP: ${zipName}…`);
-
-  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:1}});
-  saveAs(blob,`${zipName}.zip`);
-  gZip++;updateStats();
-
-  const savedPngs=Object.keys(zip.files).filter(k=>k.endsWith('.png')).length;
-  if(cardEl){
-    cardEl.classList.remove('running','retrying');
-    cardEl.classList.add('done');
-    cardEl.querySelector('.bs').textContent=`✓ ${savedPngs} saved`;
-  }
-}
-
-/* ── Main entry ── */
-async function startAll(){
-  if(running)return;
-  running=true;cancelFlag=false;
-  gOk=0;gFail=0;gQ=TOTAL;gZip=0;activeWorkers=0;
-  startTime=Date.now();
-  updateStats();
-
-  $('startBtn').disabled=true;
-  $('cancelBtn').style.display='';
-  $('resetBtn').style.display='none';
-
-  const poolSize=Math.max(1,Math.min(100,parseInt($('workers').value)||20));
-  const bSize=Math.max(100,Math.min(1000,parseInt($('batchSize').value)||500));
-  const maxR=Math.max(1,Math.min(30,parseInt($('maxR').value)||8));
-  const baseDelay=Math.max(0,Math.min(5000,parseInt($('baseDelay').value)||800));
-  const timeout=Math.max(5000,Math.min(60000,parseInt($('timeout').value)||25000));
-
-  // Build batches
-  const batches=[];
-  for(let s=1;s<=TOTAL;s+=bSize) batches.push({s,e:Math.min(s+bSize-1,TOTAL)});
-
-  // Build grid
-  const grid=$('bGrid');grid.innerHTML='';
-  const cards=batches.map((b,i)=>{
-    const c=document.createElement('div');
-    c.className='bc';
-    c.innerHTML=`<div class="bn">Batch ${i+1}</div><div class="br3">#${b.s}–${b.e}</div><div class="bs">Waiting…</div>`;
-    grid.appendChild(c);return c;
-  });
-
-  // Start timer
-  timerInterval=setInterval(updateStats,500);
-  setStatus(`🚀 Downloading ${TOTAL} images with ${poolSize} workers in ${batches.length} batch(es)…`);
-
-  for(let i=0;i<batches.length;i++){
-    if(cancelFlag)break;
-    const b=batches[i];
-    const ids=[];for(let id=b.s;id<=b.e;id++)ids.push(id);
-    setStatus(`Batch ${i+1}/${batches.length} — #${b.s} to #${b.e} — ${poolSize} workers`);
-    await downloadBatch(ids,`NFT_${b.s}_to_${b.e}`,cards[i],poolSize,maxR,baseDelay,timeout);
-  }
-
-  clearInterval(timerInterval);
-  running=false;
-  $('startBtn').disabled=false;
-  $('cancelBtn').style.display='none';
-  $('resetBtn').style.display='';
-  activeWorkers=0;updateStats();
-
-  const elapsed=(Date.now()-startTime)/1000;
-  if(cancelFlag){
-    setStatus(`⏹ Cancelled after ${fmtTime(elapsed)}. ${gZip} ZIP(s) saved, ${gOk} images downloaded.`);
-  }else if(gFail===0){
-    setStatus(`🎉 All ${gOk} images downloaded in ${fmtTime(elapsed)}! ${gZip} ZIP file(s) saved.`);
-  }else{
-    setStatus(`✅ Done in ${fmtTime(elapsed)}. ${gOk} downloaded, ${gFail} failed. ${gZip} ZIP(s) saved.`);
-  }
-  setSub('');
-}
-window.startAll=startAll;
-
-function doCancel(){cancelFlag=true;setStatus('⏹ Cancelling…')}
-window.doCancel=doCancel;
-
-function doReset(){
-  if(timerInterval)clearInterval(timerInterval);
-  gOk=0;gFail=0;gQ=TOTAL;gZip=0;activeWorkers=0;
-  $('bGrid').innerHTML='';
-  ['mainPW','subPW'].forEach(id=>$(id).style.display='none');
-  ['mainBar','subBar'].forEach(id=>$(id).style.width='0%');
-  $('resetBtn').style.display='none';
-  $('startBtn').disabled=false;
-  $('sOk').textContent=$('sFail').textContent=$('sZip').textContent='0';
-  $('sQ').textContent=TOTAL;$('sPct').textContent='0%';
-  $('etaSpeed').textContent='— img/s';$('etaElapsed').textContent='0s';
-  $('etaLeft').textContent='—';$('etaWorkers').textContent='0';$('speedBadge').textContent='0 img/s';
-  cancelFlag=false;running=false;
-  setStatus('✅ Reset. Ready to start again.');setSub('');
-}
-window.doReset=doReset;
-})();
-</script>
+    
+    document.getElementById('next-btn')?.addEventListener('click', () => {
+      if (currentPage < TOTAL_PAGES) { currentPage++; updatePage(); }
+    });
+    
+    document.getElementById('page-input')?.addEventListener('change', (e) => {
+      let val = parseInt(e.target.value);
+      if (val >= 1 && val <= TOTAL_PAGES) {
+        currentPage = val;
+        updatePage();
+      } else {
+        e.target.value = currentPage;
+      }
+    });
+    
+    document.getElementById('search-input')?.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const id = parseInt(e.target.value);
+        if (id >= 1 && id <= TOTAL_NFTS) {
+          const metadata = await fetchNFT(id);
+          if (metadata) await openModal(id, metadata);
+        } else {
+          alert(`ID must be between 1 and ${TOTAL_NFTS}`);
+        }
+      }
+    });
+    
+    document.getElementById('modal-close')?.addEventListener('click', closeModal);
+    document.getElementById('modal-backdrop')?.addEventListener('click', closeModal);
+    document.getElementById('toggle-original')?.addEventListener('click', toggleImageMode);
+    document.getElementById('download-metadata-btn')?.addEventListener('click', downloadAsZip);
+    
+    // ======================== SDK INIT ========================
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: (config) => {
+          document.getElementById('main-title').textContent = config.gallery_title || defaultConfig.gallery_title;
+          document.getElementById('subtitle').textContent = config.subtitle_text || defaultConfig.subtitle_text;
+          document.body.style.fontFamily = `${config.font_family || 'Inter'}, sans-serif`;
+        },
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            { get: () => config.background_color || defaultConfig.background_color, set: (v) => { document.body.style.backgroundColor = v; }},
+            { get: () => config.accent_color || defaultConfig.accent_color, set: (v) => { document.documentElement.style.setProperty('--accent', v); }},
+            { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { }},
+            { get: () => config.text_color || defaultConfig.text_color, set: (v) => { }},
+            { get: () => config.muted_color || defaultConfig.muted_color, set: (v) => { }}
+          ],
+          fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { }},
+          fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { }}
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['gallery_title', config.gallery_title || defaultConfig.gallery_title],
+          ['subtitle_text', config.subtitle_text || defaultConfig.subtitle_text]
+        ])
+      });
+    }
+    
+    // ======================== INIT ========================
+    document.getElementById('total-pages').innerText = TOTAL_PAGES;
+    renderGrid(1);
+    
+    setTimeout(() => {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }, 100);
+  </script>
 </body>
 </html>
