@@ -177,9 +177,9 @@
     const PER_PAGE = 20;
     const TOTAL_NFTS = 5360;
     const TOTAL_PAGES = Math.ceil(TOTAL_NFTS / PER_PAGE);
-    const CONCURRENT_LIMIT = 30;
+    const CONCURRENT_LIMIT = 100; // বাড়ানো হলো ১০০
     
-    // CID mapping with folder structure - প্রতিটি CID তে ৫০০ করে NFT
+    // CID mapping with folder structure
     const CID_RANGES = [
       { start: 160, end: 499, cid: 'QmcENAp91phXWRT7JpEpAasVve4oCsYbev56HNHD2BgLjE', folder: '0' },
       { start: 500, end: 999, cid: 'QmfUxUc1iu2RQSm1AygUEtX7giPrrzhvhKToQ4biQcimLf', folder: '1' },
@@ -191,7 +191,7 @@
       { start: 3500, end: 3999, cid: 'QmaduZqVgbqtJAoW7eyejNSLVsqXVeaRPC5HkG1SeGCyut', folder: '7' },
       { start: 4000, end: 4499, cid: 'QmQLmSXT5zY6XcNrdwhX8GbGc9QrbEhbwvEmjggRBxKeib', folder: '8' },
       { start: 4500, end: 4999, cid: 'QmTLx6G5hUDCoV8aBbXLuuV1kaUwd6KiSrARUJUHLGhEcP', folder: '9' },
-      { start: 5000, end: 5360, cid: 'QmZodri3bfsGebBBBjeBAJLztq6DmQLDqiXi4LhEeU2QCS', folder: '10' }
+      { start: 5001, end: 5360, cid: 'QmZodri3bfsGebBBBjeBAJLztq6DmQLDqiXi4LhEeU2QCS', folder: '10' }
     ];
     
     let currentPage = 1;
@@ -227,30 +227,17 @@
     function getMetadataUrl(id) {
       const range = getCIDForId(id);
       if (!range) return null;
-      
-      // Format: https://ipfs.io/ipfs/CID/folder/id.json
       return `${IPFS_GATEWAY}${range.cid}/${range.folder}/${id}.json`;
     }
     
     function getImageUrl(ipfsUri) {
       if (!ipfsUri) return null;
-      
-      // If it's already HTTP
-      if (ipfsUri.startsWith('http://') || ipfsUri.startsWith('https://')) {
-        return ipfsUri;
-      }
-      
-      // Extract CID from ipfs://
+      if (ipfsUri.startsWith('http://') || ipfsUri.startsWith('https://')) return ipfsUri;
       if (ipfsUri.startsWith('ipfs://')) {
         const cid = ipfsUri.replace('ipfs://', '');
         return `${IPFS_GATEWAY}${cid}`;
       }
-      
-      // If it's just a CID
-      if (ipfsUri.startsWith('Qm')) {
-        return `${IPFS_GATEWAY}${ipfsUri}`;
-      }
-      
+      if (ipfsUri.startsWith('Qm')) return `${IPFS_GATEWAY}${ipfsUri}`;
       return null;
     }
     
@@ -302,7 +289,6 @@
         risoCache[id] = risoUrl;
         return risoUrl;
       } catch (err) {
-        console.warn(`RISO effect failed for ${id}:`, err);
         return originalUrl;
       }
     }
@@ -312,7 +298,6 @@
       
       const url = getMetadataUrl(id);
       if (!url) {
-        console.warn(`No CID range found for ID ${id}`);
         return {
           tokenId: id,
           name: `#${id}`,
@@ -324,25 +309,16 @@
       }
       
       try {
-        console.log(`📡 Fetching metadata: ${url}`);
-        
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
         const data = await response.json();
-        console.log(`✅ NFT #${id} loaded:`, data.name);
         
-        // Extract image URL from metadata
         let imageUrl = null;
         if (data.image) {
           imageUrl = getImageUrl(data.image);
-          console.log(`🖼️ NFT #${id} image CID: ${data.image}`);
-          console.log(`🖼️ NFT #${id} image URL: ${imageUrl}`);
         }
         
-        // If no image found, use placeholder
         if (!imageUrl) {
-          console.warn(`⚠️ No image for #${id}, using placeholder`);
           imageUrl = `https://placehold.co/600x600/1a1a2a/ff5a5f?text=${id}`;
         }
         
@@ -358,7 +334,6 @@
         metadataCache[id] = normalized;
         return normalized;
       } catch (err) {
-        console.warn(`❌ Failed #${id}:`, err);
         return {
           tokenId: id,
           name: `#${id}`,
@@ -370,11 +345,11 @@
       }
     }
     
-    // ================ DOWNLOAD ZIP ================
+    // ================ DOWNLOAD ZIP - OPTIMIZED ================
     async function downloadAsZip() {
       const total = TOTAL_NFTS;
       
-      if (!confirm(`📦 Download ${total} JSON files as ZIP?\n\nThis will take ~30 seconds. Continue?`)) return;
+      if (!confirm(`📦 Download ${total} JSON files as ZIP?\n\nThis will take ~10-15 seconds. Continue?`)) return;
       
       const overlay = document.createElement('div');
       overlay.className = 'fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center gap-4 backdrop-blur-md';
@@ -387,16 +362,16 @@
             </div>
           </div>
           <p class="mono text-white font-bold text-lg text-center mb-2">📦 Creating ZIP Archive</p>
-          <p class="text-gray-400 text-sm text-center mb-4">Fetching ${total} NFTs...</p>
-          <div class="w-full bg-[#0a0a12] rounded-full h-3 overflow-hidden mb-3">
-            <div id="dl-bar" class="bg-gradient-to-r from-[#ff5a5f] to-[#ff8a8f] h-3 transition-all duration-200" style="width: 0%"></div>
+          <p class="text-gray-400 text-sm text-center mb-4">Downloading ${total} JSON files...</p>
+          <div class="w-full bg-[#0a0a12] rounded-full h-4 overflow-hidden mb-3">
+            <div id="dl-bar" class="bg-gradient-to-r from-[#ff5a5f] to-[#ff8a8f] h-4 transition-all duration-300" style="width: 0%"></div>
           </div>
           <div class="flex justify-between text-xs mono">
             <span id="dl-current" class="text-[#ff5a5f] font-bold">0</span>
             <span class="text-gray-500">/ ${total}</span>
             <span id="dl-speed" class="text-green-400">preparing...</span>
           </div>
-          <p class="text-[10px] text-gray-600 text-center mt-4">✨ Files: 1.json to ${total}.json</p>
+          <p class="text-[10px] text-gray-600 text-center mt-3">⚡ Parallel downloading with ${CONCURRENT_LIMIT} concurrent requests</p>
         </div>
       `;
       document.body.appendChild(overlay);
@@ -410,20 +385,18 @@
       let failed = [];
       const startTime = Date.now();
       
-      // Process in batches
-      const batchSize = 30;
-      for (let i = 1; i <= total; i += batchSize) {
-        const batch = [];
-        for (let j = i; j < Math.min(i + batchSize, total + 1); j++) {
-          batch.push(j);
-        }
+      // Process in large batches for speed
+      const batchSize = CONCURRENT_LIMIT;
+      const allIds = Array.from({ length: total }, (_, i) => i + 1);
+      
+      for (let i = 0; i < allIds.length; i += batchSize) {
+        const batch = allIds.slice(i, i + batchSize);
         
         await Promise.all(batch.map(async (id) => {
           try {
             const meta = await fetchNFT(id);
             zip.file(`${id}.json`, JSON.stringify(meta, null, 2));
           } catch (err) {
-            console.error(`Failed ${id}:`, err);
             failed.push(id);
             zip.file(`${id}.json`, JSON.stringify({ 
               tokenId: id, 
@@ -448,10 +421,11 @@
       document.getElementById('dl-current').textContent = 'Packaging...';
       document.getElementById('dl-speed').textContent = 'creating ZIP...';
       
+      // Generate ZIP with compression
       const blob = await zip.generateAsync({ 
         type: 'blob',
         compression: 'DEFLATE',
-        compressionOptions: { level: 6 }
+        compressionOptions: { level: 3 } // লেভেল ৩ ফাস্ট এবং ভালো
       });
       
       const a = document.createElement('a');
@@ -466,7 +440,7 @@
       
       const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
       if (failed.length > 0) {
-        alert(`✅ ZIP Created!\n\n📊 Stats:\n• Total: ${total} files\n• Time: ${totalTime}s\n• Speed: ${(total/totalTime).toFixed(1)} files/sec\n• Failed: ${failed.length}\n• Failed IDs: ${failed.slice(0, 10).join(', ')}${failed.length > 10 ? '...' : ''}`);
+        alert(`✅ ZIP Created!\n\n📊 Stats:\n• Total: ${total} files\n• Time: ${totalTime}s\n• Speed: ${(total/totalTime).toFixed(1)} files/sec\n• Failed: ${failed.length}`);
       } else {
         alert(`✅ ZIP Created Successfully!\n\n📊 Stats:\n• Total: ${total} files\n• Time: ${totalTime}s\n• Speed: ${(total/totalTime).toFixed(1)} files/sec\n• All files downloaded!`);
       }
@@ -504,7 +478,7 @@
                 alt="${metadata.name}"
                 class="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
-                onerror="console.error('❌ Image load failed for #${id}'); this.src='https://placehold.co/600x600/1a1a2a/ff5a5f?text=${id}'"
+                onerror="this.src='https://placehold.co/600x600/1a1a2a/ff5a5f?text=${id}'"
               />
               <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-3">
                 <p class="mono text-sm font-bold text-white truncate">${escapeHtml(metadata.name)}</p>
